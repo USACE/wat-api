@@ -7,12 +7,12 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/handler"
-	"github.com/usace/wat-api/model"
 )
 
 func main() {
-	var cfg model.Config
+	var cfg config.Config
 	if err := envconfig.Process("watapi", &cfg); err != nil {
 		log.Fatal(err.Error())
 	}

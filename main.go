@@ -21,14 +21,16 @@ func main() {
 
 	wHandler := handler.CreateWatHandler()
 	e := echo.New()
-
+	private := e.Group("")
+	public := e.Group("")
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	// Public Routes
-	e.GET("wat-api/version", wHandler.Version)
+	public.GET("wat-api/version", wHandler.Version)
+	public.GET("wat-api/plugins", wHandler.Plugins)
 	//Private Routes
-
+	private.POST("wat-api/compute", wHandler.Version)
 	log.Print("starting server on port " + cfg.AppPort)
 	log.Fatal(e.Start(":" + cfg.AppPort))
 

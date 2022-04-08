@@ -36,19 +36,26 @@ func main() {
 	//bar := "bar"
 	ctx := context.WithValue(context.Background(), airflow.ContextBasicAuth, cred)
 	//fmt.Println(ctx)
-	//variable := airflow.Variable{}
+	/*variable := airflow.Variable{}
+	variable.Key = &foo
+	variable.Value = &bar
 
-	//variable.Key = &foo
-	//variable.Value = &bar
-	//cli.VariableApi.PostVariables(ctx).Variable(variable)
-	variable, _, err := cli.VariableApi.GetVariable(ctx, "abc").Execute()
+	v, _, err1 := cli.VariableApi.PostVariables(ctx).Variable(variable).Execute()
+	if err1 != nil {
+		panic(err1)
+	} else {
+		//fmt.Println(resp)
+		fmt.Println(v.GetKey())
+		fmt.Println(v.GetValue())
+	}*/
+	variablereturn, _, err := cli.VariableApi.GetVariable(ctx, "").Execute()
 	//fmt.Println(resp)
 	if err != nil {
 		fmt.Println("we had an error" + err.Error())
 	} else {
 		//fmt.Println(resp)
-		fmt.Println(variable.GetKey())
-		fmt.Println(variable.GetValue())
+		fmt.Println(variablereturn.GetKey())
+		fmt.Println(variablereturn.GetValue())
 	}
 	/*
 		var cfg config.Config

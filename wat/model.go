@@ -7,7 +7,13 @@ type Model struct {
 	Inputs                 []Input  `json:"inputs"`
 	Outputs                []Output `json:"outputs"`
 }
+type LinkedModel struct {
+	Model            `json:"model"`
+	LinkedInputs     []LinkedInput `json:"linked_inputs"`
+	NecessaryOutputs []Output      `json:"required_outputs"`
+}
 type ModelManifest struct {
-	Model              `json:"model"`
+	TargetPlugin       string      `json:"target_plugin"`
+	TargetModel        LinkedModel `json:"linked_model"`
 	EventConfiguration `json:"event_config"`
 }

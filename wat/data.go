@@ -14,4 +14,9 @@ type Output struct {
 	Format    string `json:"format"`
 }
 
+type LinkedInput struct {
+	Input  `json:"input"`
+	Source Output `json:"source"`
+}
+
 //@TODO: think more broadly about types of data, sources of data and how to differentiate them in a DAG

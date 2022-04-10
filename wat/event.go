@@ -1,7 +1,6 @@
 package wat
 
 type EventConfiguration struct {
-	//InputData             string `json:"input_data_directoy"`should be defined by the dag
 	OutputDestination        string     `json:"output_destination"` //how do we manage ephemiral
 	RealizationNumber        int        `json:"realization_number"`
 	EventNumber              int        `json:"event_number"`

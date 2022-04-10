@@ -48,6 +48,10 @@ func (sj StochasticJob) SendMessage(message string) error {
 	return nil
 }
 func (sj StochasticJob) Run() error {
+	err := sj.ProvisionResources()
+	if err != nil {
+		return err
+	}
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
 	for i := 0; i < sj.TotalRealizations; i++ {                          //knowledge uncertainty loop
@@ -67,6 +71,7 @@ func (sj StochasticJob) Run() error {
 			if err != nil {
 				return err
 			}
+			//need to join this up with the model information to create a model manifest.
 			sj.SendMessage(string(bytes))
 		}
 	}

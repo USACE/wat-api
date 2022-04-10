@@ -47,12 +47,15 @@ func TestModelManifestSeralization(t *testing.T) {
 		Parameter: "time",
 		Format:    "hours",
 	}
-	m := Model{
+	mc := ModelConfiguration{
 		Name:                   "TestModel",
 		ModelConfigurationPath: "/hsm.json",
+	}
+	/*m := Model{
+		ModelConfiguration: mc,
 		Inputs:                 inputs,
 		Outputs:                outputs,
-	}
+	}*/
 	linkedInputs := make([]LinkedInput, 2)
 	linkedInputs[0] = LinkedInput{
 		Input:  inputs[0],
@@ -62,14 +65,14 @@ func TestModelManifestSeralization(t *testing.T) {
 		Input:  inputs[1],
 		Source: prevModelOutput[1],
 	}
-	lm := LinkedModel{
-		Model:            m,
+	ml := ModelLinks{
 		LinkedInputs:     linkedInputs,
 		NecessaryOutputs: outputs,
 	}
 	mmanifest := ModelManifest{
 		TargetPlugin:       "SpeedAndDistanceToTimePlugin",
-		TargetModel:        lm,
+		ModelConfiguration: mc,
+		ModelLinks:         ml,
 		EventConfiguration: eventConfiguration,
 	}
 	bytes, err := json.Marshal(mmanifest)

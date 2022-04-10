@@ -38,12 +38,15 @@ func TestModelSeralization(t *testing.T) {
 		GeneratingPluginName: "pluginName",
 		GeneratingModelName:  "modelName",
 	}
-	mmanifest := ModelManifest{
+	m := Model{
 		Name:                   "TestModel",
 		ModelConfigurationPath: "/hsm.json",
 		Inputs:                 inputs,
 		Outputs:                outputs,
-		EventConfiguration:     eventConfiguration,
+	}
+	mmanifest := ModelManifest{
+		Model:              m,
+		EventConfiguration: eventConfiguration,
 	}
 	bytes, err := json.Marshal(mmanifest)
 	if err != nil {

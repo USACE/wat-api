@@ -31,12 +31,9 @@ func TestModelSeralization(t *testing.T) {
 	}
 	outputs := make([]Output, 1)
 	outputs[0] = Output{
-		Name:                 "output1",
-		Parameter:            "time",
-		Format:               "hours",
-		LinkInfo:             LocalCSVLink{Path: "/output1.csv"},
-		GeneratingPluginName: "pluginName",
-		GeneratingModelName:  "modelName",
+		Name:      "output1",
+		Parameter: "time",
+		Format:    "hours",
 	}
 	m := Model{
 		Name:                   "TestModel",

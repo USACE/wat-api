@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestModelSeralization(t *testing.T) {
+func TestModelManifestSeralization(t *testing.T) {
 	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
 	eventConfiguration := EventConfiguration{
 		OutputDestination:        "/testing/",

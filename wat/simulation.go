@@ -6,15 +6,14 @@ import (
 	"math/rand"
 )
 
-//Job is defined by a manifest, provisions plugin resources, sends messages
+//Job is defined by a manifest, provisions plugin resources, sends messages, and generates event payloads
 type Job interface {
-	//manifest //shouldnt a job just serialize to json or something?
 	//provisionresources
 	ProvisionResources() error
 	//sendmessage
 	SendMessage(message string) error
 	//does this thing need to "run" or "compute"
-	Run() error
+	GeneratePayloads() error
 }
 
 //DeterministicJob implements the Job interface for a Deterministic Compute
@@ -47,7 +46,7 @@ func (sj StochasticJob) SendMessage(message string) error {
 	fmt.Println("sending message: " + message)
 	return nil
 }
-func (sj StochasticJob) Run() error {
+func (sj StochasticJob) GeneratePayloads() error {
 	err := sj.ProvisionResources()
 	if err != nil {
 		return err
@@ -60,12 +59,12 @@ func (sj StochasticJob) Run() error {
 			//ultimately need to send messages for each task in the event (defined by the dag)
 			eventSeed := eventrg.Int63()
 			ec := EventConfiguration{
-				OutputDestination:        sj.Outputdestination,
-				RealizationNumber:        i,
-				KnowledgeUncertaintySeed: realizationSeed,
-				EventNumber:              j,
-				NaturalVariabilitySeed:   eventSeed,
-				EventTimeWindow:          sj.TimeWindow,
+				OutputDestination: sj.Outputdestination,
+				RealizationNumber: i,
+				RealizationSeed:   realizationSeed,
+				EventNumber:       j,
+				EventSeed:         eventSeed,
+				EventTimeWindow:   sj.TimeWindow,
 			}
 			bytes, err := json.Marshal(ec)
 			if err != nil {

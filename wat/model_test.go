@@ -11,12 +11,12 @@ import (
 func TestModelManifestSeralization(t *testing.T) {
 	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
 	eventConfiguration := EventConfiguration{
-		OutputDestination:        "/testing/",
-		RealizationNumber:        1,
-		EventNumber:              1,
-		EventTimeWindow:          tw,
-		KnowledgeUncertaintySeed: 1234,
-		NaturalVariabilitySeed:   5678,
+		OutputDestination: "/testing/",
+		RealizationNumber: 1,
+		EventNumber:       1,
+		EventTimeWindow:   tw,
+		RealizationSeed:   1234,
+		EventSeed:         5678,
 	}
 	//someone has to make data somewhere...
 	prevModelOutput := make([]Output, 2)
@@ -69,7 +69,7 @@ func TestModelManifestSeralization(t *testing.T) {
 		LinkedInputs:     linkedInputs,
 		NecessaryOutputs: outputs,
 	}
-	mmanifest := ModelManifest{
+	mmanifest := ModelPayload{
 		TargetPlugin:       "SpeedAndDistanceToTimePlugin",
 		ModelConfiguration: mc,
 		ModelLinks:         ml,

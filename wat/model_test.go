@@ -3,12 +3,38 @@ package wat
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"testing"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 func TestModelManifestSeralization(t *testing.T) {
+	inputs := make([]Input, 0)
+	outputs := make([]Output, 1)
+	outputs[0] = Output{
+		Name:      "hydrograph1",
+		Parameter: "flow",
+		Format:    "csv",
+	}
+	mc := ModelConfiguration{
+		Name:                   "TestModel",
+		ModelConfigurationPath: "/hsm.json",
+	}
+	mm := ModelManifest{
+		ModelConfiguration: mc,
+		Inputs:             inputs,
+		Outputs:            outputs,
+	}
+	bytes, err := json.Marshal(mm)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	t.Log(string(bytes))
+
+}
+func TestModelPayloadSeralization(t *testing.T) {
 	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
 	eventConfiguration := EventConfiguration{
 		OutputDestination: "/testing/",
@@ -80,5 +106,12 @@ func TestModelManifestSeralization(t *testing.T) {
 		fmt.Println(err)
 		t.Fail()
 	}
-	log.Fatal(string(bytes))
+	t.Log(string(bytes))
+	t.Log("\n")
+	ybytes, err := yaml.Marshal(mmanifest)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	t.Log(string(ybytes))
 }

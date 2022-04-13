@@ -6,8 +6,8 @@ import (
 )
 
 type TimeWindow struct {
-	StartTime time.Time `json:"starttime"`
-	EndTime   time.Time `json:"endtime"`
+	StartTime time.Time `json:"starttime" yaml:"starttime"`
+	EndTime   time.Time `json:"endtime" yaml:"endtime"`
 }
 
 func (tw TimeWindow) IsValid() error {

@@ -17,8 +17,8 @@ type ModelLinks struct {
 	NecessaryOutputs []Output      `json:"required_outputs" yaml:"required_outputs"`
 }
 type ModelPayload struct {
-	TargetPlugin       string `json:"target_plugin" yaml: "target_plugin"`
-	ModelConfiguration `json:"model_configuration" yaml:"model_configuration`
+	TargetPlugin       string `json:"target_plugin" yaml:"target_plugin"`
+	ModelConfiguration `json:"model_configuration" yaml:"model_configuration"`
 	ModelLinks         `json:"model_links" yaml:"model_links"`
 	EventConfiguration `json:"event_config" yaml:"event_config"`
 }

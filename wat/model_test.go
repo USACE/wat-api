@@ -17,9 +17,11 @@ func TestModelManifestSeralization(t *testing.T) {
 		Parameter: "flow",
 		Format:    "csv",
 	}
+	paths := make([]string, 1)
+	paths[0] = "/hsm.json"
 	mc := ModelConfiguration{
-		Name:                   "TestModel",
-		ModelConfigurationPath: "/hsm.json",
+		Name:                    "TestModel",
+		ModelConfigurationPaths: paths,
 	}
 	mm := ModelManifest{
 		ModelConfiguration: mc,
@@ -36,13 +38,13 @@ func TestModelManifestSeralization(t *testing.T) {
 }
 func TestModelPayloadSeralization(t *testing.T) {
 	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
+	event := IndexedSeed{Index: 1, Seed: 5678}
+	realization := IndexedSeed{Index: 1, Seed: 1234}
 	eventConfiguration := EventConfiguration{
 		OutputDestination: "/testing/",
-		RealizationNumber: 1,
-		EventNumber:       1,
+		Realization:       realization,
+		Event:             event,
 		EventTimeWindow:   tw,
-		RealizationSeed:   1234,
-		EventSeed:         5678,
 	}
 	//someone has to make data somewhere...
 	prevModelOutput := make([]Output, 2)
@@ -73,9 +75,11 @@ func TestModelPayloadSeralization(t *testing.T) {
 		Parameter: "time",
 		Format:    "hours",
 	}
+	paths := make([]string, 1)
+	paths[0] = "/hsm.json"
 	mc := ModelConfiguration{
-		Name:                   "TestModel",
-		ModelConfigurationPath: "/hsm.json",
+		Name:                    "TestModel",
+		ModelConfigurationPaths: paths,
 	}
 	/*m := Model{
 		ModelConfiguration: mc,

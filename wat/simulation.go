@@ -55,15 +55,15 @@ func (sj StochasticJob) GeneratePayloads() error {
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
 	for i := 0; i < sj.TotalRealizations; i++ {                          //knowledge uncertainty loop
 		realizationSeed := realizationrg.Int63()
+		realization := IndexedSeed{Index: i, Seed: realizationSeed}
 		for j := 0; j < sj.EventsPerRealization; j++ { //natural variability loop
 			//ultimately need to send messages for each task in the event (defined by the dag)
 			eventSeed := eventrg.Int63()
+			event := IndexedSeed{Index: j, Seed: eventSeed}
 			ec := EventConfiguration{
 				OutputDestination: sj.Outputdestination,
-				RealizationNumber: i,
-				RealizationSeed:   realizationSeed,
-				EventNumber:       j,
-				EventSeed:         eventSeed,
+				Realization:       realization,
+				Event:             event,
 				EventTimeWindow:   sj.TimeWindow,
 			}
 			bytes, err := json.Marshal(ec)

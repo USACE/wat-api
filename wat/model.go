@@ -2,8 +2,8 @@ package wat
 
 //ModelConfiguration is a name and a path to a configuration
 type ModelConfiguration struct {
-	Name                   string `json:"model_name" yaml:"model_name"`                             //model library guid?
-	ModelConfigurationPath string `json:"model_configuration_path" yaml:"model_configuration_path"` //probably a uri?
+	Name                    string   `json:"model_name" yaml:"model_name"`                               //model library guid?
+	ModelConfigurationPaths []string `json:"model_configuration_paths" yaml:"model_configuration_paths"` //probably a uri?
 }
 
 //ModelManifest is defined by a set of files, provides inputs and ouptuts, is recognizable by a Model Library MCAT

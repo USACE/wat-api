@@ -14,3 +14,5 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &
     tar -xvzf /go1.18.linux-amd64.tar.gz -C / &&\
     apt -y install vim &&\
     apt -y install git
+
+

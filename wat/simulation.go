@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
 //Job is defined by a manifest, provisions plugin resources, sends messages, and generates event payloads
@@ -11,7 +14,7 @@ type Job interface {
 	//provisionresources
 	ProvisionResources() error
 	//sendmessage
-	SendMessage(message string) error
+	SendMessage(message string, sqs *sqs.SQS) error
 	//does this thing need to "run" or "compute"
 	GeneratePayloads() error
 }
@@ -42,11 +45,23 @@ func (sj StochasticJob) ProvisionResources() error {
 	fmt.Println("provisioning resources...")
 	return nil
 }
-func (sj StochasticJob) SendMessage(message string) error {
+func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS) error {
 	fmt.Println("sending message: " + message)
+	queueURL := fmt.Sprintf("%v/queue/messages", queue.Endpoint)
+	fmt.Println("sending message to:", queueURL)
+	output, err := queue.SendMessage(&sqs.SendMessageInput{
+		DelaySeconds: aws.Int64(1),
+		MessageBody:  aws.String(message),
+		QueueUrl:     &queueURL,
+	})
+	fmt.Println("message sent")
+	if err != nil {
+		return err
+	}
+	fmt.Println(output.String())
 	return nil
 }
-func (sj StochasticJob) GeneratePayloads() ([]EventConfiguration, error) {
+func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS) ([]EventConfiguration, error) {
 	err := sj.ProvisionResources()
 	configs := make([]EventConfiguration, 0)
 	if err != nil {
@@ -73,7 +88,11 @@ func (sj StochasticJob) GeneratePayloads() ([]EventConfiguration, error) {
 				return configs, err
 			}
 			//need to join this up with the model information to create a model manifest.
-			sj.SendMessage(string(bytes))
+			err = sj.SendMessage(string(bytes), sqs)
+			if err != nil {
+				fmt.Println(err)
+				return configs, err
+			}
 		}
 	}
 	return configs, nil

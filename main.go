@@ -12,14 +12,16 @@ import (
 )
 
 func main() {
-	var cfg config.Config
-	if err := envconfig.Process("watapi", &cfg); err != nil {
+	var cfg config.WatConfig
+	if err := envconfig.Process("WAT_API", &cfg); err != nil {
 		log.Fatal(err.Error())
 	}
 	fmt.Println(cfg)
-	cfg.SkipJWT = true
 
-	wHandler := handler.CreateWatHandler()
+	wHandler, err := handler.CreateWatHandler(cfg)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	e := echo.New()
 	private := e.Group("")
 	public := e.Group("")
@@ -30,6 +32,6 @@ func main() {
 	public.GET("wat-api/plugins", wHandler.Plugins)
 	//Private Routes
 	private.GET("wat-api/compute", wHandler.ExecuteJob) //needs to be a post and post the job config
-	log.Print("starting server on port " + cfg.AppPort)
-	log.Fatal(e.Start(":" + cfg.AppPort))
+	log.Print("starting server on port " + cfg.APP_PORT)
+	log.Fatal(e.Start(":" + cfg.APP_PORT))
 }

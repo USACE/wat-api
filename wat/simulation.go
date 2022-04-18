@@ -46,10 +46,11 @@ func (sj StochasticJob) SendMessage(message string) error {
 	fmt.Println("sending message: " + message)
 	return nil
 }
-func (sj StochasticJob) GeneratePayloads() error {
+func (sj StochasticJob) GeneratePayloads() ([]EventConfiguration, error) {
 	err := sj.ProvisionResources()
+	configs := make([]EventConfiguration, 0)
 	if err != nil {
-		return err
+		return configs, err
 	}
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
@@ -66,13 +67,14 @@ func (sj StochasticJob) GeneratePayloads() error {
 				Event:             event,
 				EventTimeWindow:   sj.TimeWindow,
 			}
+			configs = append(configs, ec)
 			bytes, err := json.Marshal(ec)
 			if err != nil {
-				return err
+				return configs, err
 			}
 			//need to join this up with the model information to create a model manifest.
 			sj.SendMessage(string(bytes))
 		}
 	}
-	return nil
+	return configs, nil
 }

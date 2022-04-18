@@ -1,83 +1,35 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
+	"log"
 
-	"github.com/apache/airflow-client-go/airflow"
+	"github.com/kelseyhightower/envconfig"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/usace/wat-api/config"
+	handler "github.com/usace/wat-api/handlers"
 )
 
 func main() {
-
-	// Start a local HTTP server
-	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		rw.Header().Set("Content-Type", "application/json")
-		rw.Write([]byte(`{"key": "food", "value": "bar"}`))
-	}))
-	// Close the server when test finishes
-	defer server.Close()
-	url, err := url.Parse(server.URL)
-	//assert.Equal(t, nil, err)
-
-	conf := airflow.NewConfiguration()
-	conf.Host = url.Host //"host.docker.internal:8080"
-	conf.Scheme = "http"
-	cli := airflow.NewAPIClient(conf)
-
-	cred := airflow.BasicAuth{
-		UserName: "username",
-		Password: "password",
+	var cfg config.Config
+	if err := envconfig.Process("watapi", &cfg); err != nil {
+		log.Fatal(err.Error())
 	}
+	fmt.Println(cfg)
+	cfg.SkipJWT = true
 
-	//foo := "foo"
-	//bar := "bar"
-	ctx := context.WithValue(context.Background(), airflow.ContextBasicAuth, cred)
-	//fmt.Println(ctx)
-	/*variable := airflow.Variable{}
-	variable.Key = &foo
-	variable.Value = &bar
-
-	v, _, err1 := cli.VariableApi.PostVariables(ctx).Variable(variable).Execute()
-	if err1 != nil {
-		panic(err1)
-	} else {
-		//fmt.Println(resp)
-		fmt.Println(v.GetKey())
-		fmt.Println(v.GetValue())
-	}*/
-	variablereturn, _, err := cli.VariableApi.GetVariable(ctx, "").Execute()
-	//fmt.Println(resp)
-	if err != nil {
-		fmt.Println("we had an error" + err.Error())
-	} else {
-		//fmt.Println(resp)
-		fmt.Println(variablereturn.GetKey())
-		fmt.Println(variablereturn.GetValue())
-	}
-	/*
-		var cfg config.Config
-		if err := envconfig.Process("watapi", &cfg); err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println(cfg)
-		cfg.SkipJWT = true
-
-		wHandler := handler.CreateWatHandler()
-		e := echo.New()
-		private := e.Group("")
-		public := e.Group("")
-		e.Use(middleware.Logger())
-		e.Use(middleware.Recover())
-
-		// Public Routes
-		public.GET("wat-api/version", wHandler.Version)
-		public.GET("wat-api/plugins", wHandler.Plugins)
-		//Private Routes
-		private.POST("wat-api/compute", wHandler.Version) //needs to post the job config
-		//log.Print("starting server on port " + cfg.AppPort)
-		//log.Fatal(e.Start(":" + cfg.AppPort))
-	*/
+	wHandler := handler.CreateWatHandler()
+	e := echo.New()
+	private := e.Group("")
+	public := e.Group("")
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	// Public Routes
+	public.GET("wat-api/version", wHandler.Version)
+	public.GET("wat-api/plugins", wHandler.Plugins)
+	//Private Routes
+	private.GET("wat-api/compute", wHandler.ExecuteJob) //needs to be a post and post the job config
+	log.Print("starting server on port " + cfg.AppPort)
+	log.Fatal(e.Start(":" + cfg.AppPort))
 }

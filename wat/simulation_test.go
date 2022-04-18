@@ -18,7 +18,7 @@ func TestStochasticPayloadGeneration(t *testing.T) {
 		Inputsource:                  "testSettings.InputDataDir",
 		DeleteOutputAfterRealization: false,
 	}
-	err := sj.GeneratePayloads()
+	_, err := sj.GeneratePayloads()
 	if err != nil {
 		t.Fail()
 	}

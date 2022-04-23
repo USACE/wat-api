@@ -21,6 +21,7 @@ require (
 require (
 	github.com/USACE/filestore v0.1.5-0.20220416172749-6484811f7b13
 	github.com/apache/airflow-client-go/airflow v0.0.0-20220302101209-92f8091a0f81
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.1 // indirect

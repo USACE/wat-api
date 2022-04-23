@@ -6,70 +6,33 @@ import (
 	"time"
 
 	"github.com/USACE/filestore"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/labstack/echo/v4"
-	"github.com/usace/wat-api/config"
+	"github.com/usace/wat-api/utils"
 	"github.com/usace/wat-api/wat"
 )
 
 type WatHandler struct {
-	store *filestore.FileStore
-	queue *sqs.SQS
+	store   *filestore.FileStore
+	queue   *sqs.SQS
+	AppPort string
 }
 
-func CreateWatHandler(cfg config.WatConfig) (*WatHandler, error) {
+func CreateWatHandler() (*WatHandler, error) {
+	loader, err := utils.InitLoader("WAT_API")
 	wh := WatHandler{}
-	store, err := LoadFileStore(cfg)
+	store, err := loader.InitStore()
 	if err != nil {
 		return &wh, err
 	}
-	wh.store = store
-	sqs, err := LoadSQS(cfg)
+	wh.store = &store
+	sqs, err := loader.InitQueue()
 	if err != nil {
 		return &wh, err
 	}
 	wh.queue = sqs
+	wh.AppPort = loader.AppPort()
 	return &wh, nil
-}
-func LoadFileStore(cfg config.WatConfig) (*filestore.FileStore, error) {
-	s3Conf := filestore.S3FSConfig{
-		S3Id:     cfg.AWS_ACCESS_KEY_ID,
-		S3Key:    cfg.AWS_SECRET_ACCESS_KEY,
-		S3Region: cfg.AWS_DEFAULT_REGION,
-		S3Bucket: cfg.S3_BUCKET,
-	}
-	if cfg.S3_MOCK {
-		s3Conf.Mock = cfg.S3_MOCK
-		s3Conf.S3DisableSSL = cfg.S3_DISABLE_SSL
-		s3Conf.S3ForcePathStyle = cfg.S3_FORCE_PATH_STYLE
-		s3Conf.S3Endpoint = cfg.S3_ENDPOINT
-	}
-	fmt.Println(s3Conf)
-
-	fs, err := filestore.NewFileStore(s3Conf)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &fs, nil
-}
-func LoadSQS(cfg config.WatConfig) (*sqs.SQS, error) {
-	creds := credentials.NewStaticCredentials(cfg.AWS_ACCESS_KEY_ID, cfg.AWS_SECRET_ACCESS_KEY, "")
-	awscfg := aws.NewConfig().WithRegion(cfg.AWS_DEFAULT_REGION).WithCredentials(creds)
-	sess, err := session.NewSession(awscfg)
-	if err != nil {
-		return nil, err
-	}
-
-	sqs := sqs.New(sess, aws.NewConfig().WithEndpoint(cfg.SQS_ENDPOINT))
-	return sqs, nil
-}
-func LoadRedis() {
-
 }
 
 const version = "2.0.1 Development"

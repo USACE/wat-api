@@ -9,12 +9,12 @@ type ModelConfiguration struct {
 //ModelManifest is defined by a set of files, provides inputs and ouptuts, is recognizable by a Model Library MCAT
 type ModelManifest struct {
 	ModelConfiguration `json:"model_configuration" yaml:"model_configuration"`
-	Inputs             []Input  `json:"inputs" yaml:"inputs"`
-	Outputs            []Output `json:"outputs" yaml:"outputs"`
+	Inputs             []RequiredInput  `json:"inputs" yaml:"inputs"`
+	Outputs            []PossibleOutput `json:"outputs" yaml:"outputs"`
 }
 type ModelLinks struct {
-	LinkedInputs     []LinkedInput `json:"linked_inputs" yaml:"linked_inputs"`
-	NecessaryOutputs []Output      `json:"required_outputs" yaml:"required_outputs"`
+	LinkedInputs     []SatisfiedLink  `json:"linked_inputs" yaml:"linked_inputs"`
+	NecessaryOutputs []PossibleOutput `json:"required_outputs" yaml:"required_outputs"`
 }
 type ModelPayload struct {
 	TargetPlugin       string `json:"target_plugin" yaml:"target_plugin"`

@@ -10,9 +10,9 @@ import (
 )
 
 func TestModelManifestSeralization(t *testing.T) {
-	inputs := make([]Input, 0)
-	outputs := make([]Output, 1)
-	outputs[0] = Output{
+	inputs := make([]RequiredInput, 0)
+	outputs := make([]PossibleOutput, 1)
+	outputs[0] = PossibleOutput{
 		Name:      "hydrograph1",
 		Parameter: "flow",
 		Format:    "csv",
@@ -46,31 +46,31 @@ func TestModelPayloadSeralization(t *testing.T) {
 		Event:             event,
 		EventTimeWindow:   tw,
 	}
-	//someone has to make data somewhere...
-	prevModelOutput := make([]Output, 2)
-	prevModelOutput[0] = Output{
+	//someone has to make data somewhere... probably needs to be computed output
+	prevModelOutput := make([]ComputedOutput, 2)
+	prevModelOutput[0] = ComputedOutput{
 		Name:      "OutputFromAnotherModel1",
 		Parameter: "speed",
 		Format:    "mph",
 	}
-	prevModelOutput[1] = Output{
+	prevModelOutput[1] = ComputedOutput{
 		Name:      "OutputFromAnotherModel2",
 		Parameter: "distance",
 		Format:    "mi",
 	}
-	inputs := make([]Input, 2)
-	inputs[0] = Input{
+	inputs := make([]RequiredInput, 2)
+	inputs[0] = RequiredInput{
 		Name:      "input1",
 		Parameter: "speed",
 		Format:    "mph",
 	}
-	inputs[1] = Input{
+	inputs[1] = RequiredInput{
 		Name:      "input2",
 		Parameter: "distance",
 		Format:    "mi",
 	}
-	outputs := make([]Output, 1)
-	outputs[0] = Output{
+	outputs := make([]PossibleOutput, 1)
+	outputs[0] = PossibleOutput{
 		Name:      "output1",
 		Parameter: "time",
 		Format:    "hours",
@@ -86,14 +86,14 @@ func TestModelPayloadSeralization(t *testing.T) {
 		Inputs:                 inputs,
 		Outputs:                outputs,
 	}*/
-	linkedInputs := make([]LinkedInput, 2)
-	linkedInputs[0] = LinkedInput{
-		Input:  inputs[0],
-		Source: prevModelOutput[0],
+	linkedInputs := make([]SatisfiedLink, 2)
+	linkedInputs[0] = SatisfiedLink{
+		RequiredInput: inputs[0],
+		Source:        prevModelOutput[0],
 	}
-	linkedInputs[1] = LinkedInput{
-		Input:  inputs[1],
-		Source: prevModelOutput[1],
+	linkedInputs[1] = SatisfiedLink{
+		RequiredInput: inputs[1],
+		Source:        prevModelOutput[1],
 	}
 	ml := ModelLinks{
 		LinkedInputs:     linkedInputs,

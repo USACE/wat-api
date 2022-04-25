@@ -82,7 +82,7 @@ services:
       - ./:/workspaces
   lambda:
     container_name: lambda
-    image: williamlehman/lambda-mock:v0.0.1
+    image: williamlehman/lambda-mock:v0.0.2
     depends_on:
       - sqs-emulator
       - redis

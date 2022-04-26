@@ -34,6 +34,9 @@ func InitLoader(prefix string) (ServicesLoader, error) {
 func (sl ServicesLoader) AppPort() string {
 	return sl.config.APP_PORT
 }
+func (sl ServicesLoader) EnvironmentVariables() []string {
+	return sl.config.EnvironmentVariables()
+}
 func (sl ServicesLoader) InitQueue() (*sqs.SQS, error) {
 	creds := credentials.NewStaticCredentials(
 		sl.config.AWS_ACCESS_KEY_ID,

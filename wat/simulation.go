@@ -1,12 +1,12 @@
 package wat
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/rand"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"gopkg.in/yaml.v2"
 )
 
 //Job is defined by a manifest, provisions plugin resources, sends messages, and generates event payloads
@@ -61,11 +61,22 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS) error {
 	fmt.Println(output.String())
 	return nil
 }
-func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS) ([]EventConfiguration, error) {
+func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS) ([]ModelPayload, error) {
 	err := sj.ProvisionResources()
-	configs := make([]EventConfiguration, 0)
+	payloads := make([]ModelPayload, 0)
+	paths := make([]string, 1)
+	paths[0] = sj.Inputsource + "fc.json"
+	mconfig := ModelConfiguration{
+		Name:                    "levee_failures",
+		ModelConfigurationPaths: paths,
+	}
+	payload := ModelPayload{
+		TargetPlugin:       "fragilitycurveplugin",
+		PluginImageAndTag:  "williamlehman/fragilitycurveplugin:v0.0.2",
+		ModelConfiguration: mconfig,
+	}
 	if err != nil {
-		return configs, err
+		return payloads, err
 	}
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
@@ -77,23 +88,24 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS) ([]EventConfiguration, er
 			eventSeed := eventrg.Int63()
 			event := IndexedSeed{Index: j, Seed: eventSeed}
 			ec := EventConfiguration{
-				OutputDestination: sj.Outputdestination,
+				OutputDestination: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination, "realization ", realization.Index, "event ", event.Index),
 				Realization:       realization,
 				Event:             event,
 				EventTimeWindow:   sj.TimeWindow,
 			}
-			configs = append(configs, ec)
-			bytes, err := json.Marshal(ec)
+			payload.EventConfiguration = ec
+			payloads = append(payloads, payload)
+			bytes, err := yaml.Marshal(payload)
 			if err != nil {
-				return configs, err
+				return payloads, err
 			}
 			//need to join this up with the model information to create a model manifest.
 			err = sj.SendMessage(string(bytes), sqs)
 			if err != nil {
 				fmt.Println(err)
-				return configs, err
+				return payloads, err
 			}
 		}
 	}
-	return configs, nil
+	return payloads, nil
 }

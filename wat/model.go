@@ -18,6 +18,7 @@ type ModelLinks struct {
 }
 type ModelPayload struct {
 	TargetPlugin       string `json:"target_plugin" yaml:"target_plugin"`
+	PluginImageAndTag  string `json:"plugin_image_and_tag" yaml:"plugin_image_and_tag"`
 	ModelConfiguration `json:"model_configuration" yaml:"model_configuration"`
 	ModelLinks         `json:"model_links" yaml:"model_links"`
 	EventConfiguration `json:"event_config" yaml:"event_config"`

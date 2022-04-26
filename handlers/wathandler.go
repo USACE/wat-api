@@ -56,8 +56,8 @@ func (wh *WatHandler) ExecuteJob(c echo.Context) error {
 		EventsPerRealization:         10,
 		InitialRealizationSeed:       1234,
 		InitialEventSeed:             1234,
-		Outputdestination:            "testing",
-		Inputsource:                  "testSettings.InputDataDir",
+		Outputdestination:            "/data/",
+		Inputsource:                  "/data/",
 		DeleteOutputAfterRealization: false,
 	}
 	configs, err := sj.GeneratePayloads(wh.queue)

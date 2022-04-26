@@ -1,0 +1,87 @@
+{
+    "name":"testModel",
+	"locations": [{
+		"location": "levee1",
+		"stage-probability": {
+			"xvalues": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+			"ydistributions": [{
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 98,
+					"mostlikely": 99,
+					"max": 100
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 99,
+					"mostlikely": 100,
+					"max": 101
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 100,
+					"mostlikely": 101,
+					"max": 102
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 101,
+					"mostlikely": 102,
+					"max": 103
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 102,
+					"mostlikely": 103,
+					"max": 104
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 103,
+					"mostlikely": 104,
+					"max": 105
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 104,
+					"mostlikely": 105,
+					"max": 106
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 105,
+					"mostlikely": 106,
+					"max": 107
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 106,
+					"mostlikely": 107,
+					"max": 108
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 107,
+					"mostlikely": 108,
+					"max": 109
+				}
+			}, {
+				"type": "TriangularDistribution",
+				"parameters": {
+					"min": 108,
+					"mostlikely": 109,
+					"max": 110
+				}
+			}]
+		}
+	}]
+}

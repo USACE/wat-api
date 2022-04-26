@@ -50,7 +50,7 @@ services:
       exit 0;
       "
     volumes:
-      - ./configs:/configs/data/wat-api
+      - ./configs:/configs
   wat-api:
     container_name: wat-api
     depends_on: 
@@ -82,7 +82,7 @@ services:
       - ./:/workspaces
   lambda:
     container_name: lambda
-    image: williamlehman/lambda-mock:v0.0.2
+    image: williamlehman/lambda-mock:v0.0.6
     depends_on:
       - sqs-emulator
       - redis

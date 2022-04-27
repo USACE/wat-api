@@ -88,7 +88,7 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS) ([]ModelPayload, error) {
 			eventSeed := eventrg.Int63()
 			event := IndexedSeed{Index: j, Seed: eventSeed}
 			ec := EventConfiguration{
-				OutputDestination: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination, "realization ", realization.Index, "event ", event.Index),
+				OutputDestination: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination, "realization_", realization.Index, "event_", event.Index),
 				Realization:       realization,
 				Event:             event,
 				EventTimeWindow:   sj.TimeWindow,

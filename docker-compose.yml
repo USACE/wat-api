@@ -82,7 +82,7 @@ services:
       - ./:/workspaces
   lambda:
     container_name: lambda
-    image: williamlehman/lambda-mock:v0.0.9
+    image: williamlehman/lambda-mock:v0.0.11
     depends_on:
       - sqs-emulator
       - redis
@@ -96,13 +96,13 @@ services:
       - AWS_S3_BUCKET=configs
       - S3_MOCK=True
       - S3_BUCKET=configs
-      - S3_ENDPOINT=minio:9000
+      - S3_ENDPOINT=host.docker.internal:9000
       - S3_DISABLE_SSL=True
       - S3_FORCE_PATH_STYLE=True
       - REDIS_HOST=cache
       - REDIS_PORT=6379
       - REDIS_PASSWORD=eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
-      - SQS_ENDPOINT=http://sqs:9324
+      - SQS_ENDPOINT=http://host.docker.internal:9324
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 volumes:

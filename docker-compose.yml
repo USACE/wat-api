@@ -82,7 +82,7 @@ services:
       - ./:/workspaces
   lambda:
     container_name: lambda
-    image: williamlehman/lambda-mock:v0.0.11
+    image: williamlehman/lambda-mock:v0.0.12
     depends_on:
       - sqs
       - cache

@@ -64,39 +64,54 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS) error {
 }
 func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS) ([]ModelPayload, error) {
 	err := sj.ProvisionResources()
+	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
+	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
 	payloads := make([]ModelPayload, 0)
-	fcp := Plugin{"fragilitycurveplugin", "williamlehman/fragilitycurveplugin:v0.0.2"}
-	payload := MockModelPayload(sj.Inputsource, fcp)
 	if err != nil {
 		return payloads, err
 	}
-	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
-	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
-	for i := 0; i < sj.TotalRealizations; i++ {                          //knowledge uncertainty loop
-		realizationSeed := realizationrg.Int63()
-		realization := IndexedSeed{Index: i, Seed: realizationSeed}
+	plugins := sj.SelectedPlugins
+	pluginPayloadStubs := make([]ModelPayload, len(plugins))
+	realizationRandomGeneratorByPlugin := make([]*rand.Rand, len(plugins))
+	eventRandomGeneratorByPlugin := make([]*rand.Rand, len(plugins))
+	for idx, p := range plugins {
+		pluginPayloadStubs[idx] = MockModelPayload(sj.Inputsource, p)
+		realizationSeeder := realizationrg.Int63()
+		eventSeeder := eventrg.Int63()
+		realizationRandomGeneratorByPlugin[idx] = rand.New(rand.NewSource(realizationSeeder))
+		eventRandomGeneratorByPlugin[idx] = rand.New(rand.NewSource(eventSeeder))
+	}
+	for i := 0; i < sj.TotalRealizations; i++ { //knowledge uncertainty loop
+		realizationIndexedSeeds := make([]IndexedSeed, len(plugins))
+		for idx, _ := range plugins {
+			realizationSeed := realizationRandomGeneratorByPlugin[idx].Int63()
+			realizationIndexedSeeds[idx] = IndexedSeed{Index: i, Seed: realizationSeed}
+		}
 		for j := 0; j < sj.EventsPerRealization; j++ { //natural variability loop
 			//ultimately need to send messages for each task in the event (defined by the dag)
-			eventSeed := eventrg.Int63()
-			event := IndexedSeed{Index: j, Seed: eventSeed}
-			ec := EventConfiguration{
-				OutputDestination: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination, "realization_", realization.Index, "event_", event.Index),
-				Realization:       realization,
-				Event:             event,
-				EventTimeWindow:   sj.TimeWindow,
+			for idx, _ := range plugins {
+				eventSeed := eventRandomGeneratorByPlugin[idx].Int63()
+				event := IndexedSeed{Index: j, Seed: eventSeed}
+				ec := EventConfiguration{
+					OutputDestination: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination, "realization_", realizationIndexedSeeds[idx].Index, "event_", event.Index),
+					Realization:       realizationIndexedSeeds[idx],
+					Event:             event,
+					EventTimeWindow:   sj.TimeWindow,
+				}
+				pluginPayloadStubs[idx].EventConfiguration = ec
+				payloads = append(payloads, pluginPayloadStubs[idx])
+				bytes, err := yaml.Marshal(pluginPayloadStubs[idx])
+				if err != nil {
+					return payloads, err
+				}
+				//need to join this up with the model information to create a model manifest.
+				err = sj.SendMessage(string(bytes), sqs)
+				if err != nil {
+					fmt.Println(err)
+					return payloads, err
+				}
 			}
-			payload.EventConfiguration = ec
-			payloads = append(payloads, payload)
-			bytes, err := yaml.Marshal(payload)
-			if err != nil {
-				return payloads, err
-			}
-			//need to join this up with the model information to create a model manifest.
-			err = sj.SendMessage(string(bytes), sqs)
-			if err != nil {
-				fmt.Println(err)
-				return payloads, err
-			}
+
 		}
 	}
 	return payloads, nil

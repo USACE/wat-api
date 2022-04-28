@@ -31,6 +31,7 @@ type DeterministicJob struct {
 //StochasticJob implements the job interface for a Stochastic Simulation
 type StochasticJob struct {
 	//dag
+	SelectedPlugins              []Plugin `json:"plugins"` //ultimately this needs to be part of the dag somehow
 	TimeWindow                   `json:"timewindow"`
 	TotalRealizations            int    `json:"totalrealizations"`
 	EventsPerRealization         int    `json:"eventsperrealization"`
@@ -64,17 +65,8 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS) error {
 func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS) ([]ModelPayload, error) {
 	err := sj.ProvisionResources()
 	payloads := make([]ModelPayload, 0)
-	paths := make([]string, 1)
-	paths[0] = sj.Inputsource + "fc.json"
-	mconfig := ModelConfiguration{
-		Name:                    "levee_failures",
-		ModelConfigurationPaths: paths,
-	}
-	payload := ModelPayload{
-		TargetPlugin:       "fragilitycurveplugin",
-		PluginImageAndTag:  "williamlehman/fragilitycurveplugin:v0.0.2",
-		ModelConfiguration: mconfig,
-	}
+	fcp := Plugin{"fragilitycurveplugin", "williamlehman/fragilitycurveplugin:v0.0.2"}
+	payload := MockModelPayload(sj.Inputsource, fcp)
 	if err != nil {
 		return payloads, err
 	}

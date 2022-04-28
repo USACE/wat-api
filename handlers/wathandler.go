@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/USACE/filestore"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -48,18 +47,7 @@ func (wh *WatHandler) Plugins(c echo.Context) error {
 	return c.JSON(http.StatusOK, plugins)
 }
 func (wh *WatHandler) ExecuteJob(c echo.Context) error {
-	tw := wat.TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
-	sj := wat.StochasticJob{
-
-		TimeWindow:                   tw,
-		TotalRealizations:            2,
-		EventsPerRealization:         10,
-		InitialRealizationSeed:       1234,
-		InitialEventSeed:             1234,
-		Outputdestination:            "/data/",
-		Inputsource:                  "/data/",
-		DeleteOutputAfterRealization: false,
-	}
+	sj := MockStochasticJob()
 	configs, err := sj.GeneratePayloads(wh.queue)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)

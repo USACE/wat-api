@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/USACE/filestore"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/go-redis/redis"
+	"github.com/usace/wat-api/config"
 	"gopkg.in/yaml.v2"
 )
 
@@ -16,7 +19,7 @@ type Job interface {
 	//sendmessage
 	SendMessage(message string, sqs *sqs.SQS) error
 	//does this thing need to "run" or "compute"
-	GeneratePayloads() error
+	GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, cache *redis.Client) error
 }
 
 //DeterministicJob implements the Job interface for a Deterministic Compute
@@ -62,7 +65,7 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS) error {
 	fmt.Println(output.String())
 	return nil
 }
-func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS) ([]ModelPayload, error) {
+func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, cache *redis.Client, config config.WatConfig) ([]ModelPayload, error) {
 	err := sj.ProvisionResources()
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
@@ -100,7 +103,14 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS) ([]ModelPayload, error) {
 				}
 				pluginPayloadStubs[idx].EventConfiguration = ec
 				payloads = append(payloads, pluginPayloadStubs[idx])
-				bytes, err := yaml.Marshal(pluginPayloadStubs[idx])
+				payload := pluginPayloadStubs[idx]
+				for idx, li := range payload.LinkedInputs {
+					li.Scheme = config.S3_ENDPOINT + "/" + config.S3_BUCKET
+					li.Authority = ec.OutputDestination
+					li.Fragment = "hsm1.csv" //how do i figure this out?
+					payload.LinkedInputs[idx] = li
+				}
+				bytes, err := yaml.Marshal(payload)
 				if err != nil {
 					return payloads, err
 				}

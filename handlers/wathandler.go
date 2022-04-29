@@ -6,7 +6,9 @@ import (
 
 	"github.com/USACE/filestore"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/go-redis/redis"
 	"github.com/labstack/echo/v4"
+	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/utils"
 	"github.com/usace/wat-api/wat"
 )
@@ -14,11 +16,14 @@ import (
 type WatHandler struct {
 	store   *filestore.FileStore
 	queue   *sqs.SQS
+	cache   *redis.Client
 	AppPort string
+	config  config.WatConfig
 }
 
 func CreateWatHandler() (*WatHandler, error) {
 	loader, err := utils.InitLoader("WAT_API")
+
 	wh := WatHandler{}
 	store, err := loader.InitStore()
 	if err != nil {
@@ -30,7 +35,13 @@ func CreateWatHandler() (*WatHandler, error) {
 		return &wh, err
 	}
 	wh.queue = sqs
+	cache, err := loader.InitRedis()
+	if err != nil {
+		return &wh, err
+	}
+	wh.cache = cache
 	wh.AppPort = loader.AppPort()
+	wh.config = loader.Config()
 	return &wh, nil
 }
 
@@ -48,7 +59,7 @@ func (wh *WatHandler) Plugins(c echo.Context) error {
 }
 func (wh *WatHandler) ExecuteJob(c echo.Context) error {
 	sj := MockStochasticJob()
-	configs, err := sj.GeneratePayloads(wh.queue)
+	configs, err := sj.GeneratePayloads(wh.queue, wh.store, wh.cache, wh.config)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}

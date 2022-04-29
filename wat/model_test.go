@@ -86,14 +86,26 @@ func TestModelPayloadSeralization(t *testing.T) {
 		Inputs:                 inputs,
 		Outputs:                outputs,
 	}*/
-	linkedInputs := make([]SatisfiedLink, 2)
-	linkedInputs[0] = SatisfiedLink{
-		RequiredInput: inputs[0],
-		Source:        prevModelOutput[0],
+	linkedInputs := make([]ComputedOutput, 2)
+	linkedInputs[0] = ComputedOutput{
+		Name:      inputs[0].Name,
+		Format:    inputs[0].Format,
+		Parameter: inputs[0].Parameter,
+		ResourceInfo: ResourceInfo{
+			Scheme:    "s3://",
+			Authority: "testing/",
+			Fragment:  inputs[0].Name,
+		},
 	}
-	linkedInputs[1] = SatisfiedLink{
-		RequiredInput: inputs[1],
-		Source:        prevModelOutput[1],
+	linkedInputs[1] = ComputedOutput{
+		Name:      inputs[1].Name,
+		Format:    inputs[1].Format,
+		Parameter: inputs[1].Parameter,
+		ResourceInfo: ResourceInfo{
+			Scheme:    "s3://",
+			Authority: "testing/",
+			Fragment:  inputs[1].Name,
+		},
 	}
 	ml := ModelLinks{
 		LinkedInputs:     linkedInputs,

@@ -3,6 +3,8 @@ package wat
 import (
 	"testing"
 	"time"
+
+	"github.com/usace/wat-api/config"
 )
 
 func TestStochasticPayloadGeneration(t *testing.T) {
@@ -18,7 +20,8 @@ func TestStochasticPayloadGeneration(t *testing.T) {
 		Inputsource:                  "testSettings.InputDataDir",
 		DeleteOutputAfterRealization: false,
 	}
-	_, err := sj.GeneratePayloads(nil)
+	config := config.WatConfig{}
+	_, err := sj.GeneratePayloads(nil, nil, nil, config)
 	if err != nil {
 		t.Fail()
 	}

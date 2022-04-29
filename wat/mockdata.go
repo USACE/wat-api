@@ -38,6 +38,38 @@ func MockModelPayload(inputSource string, plugin Plugin) ModelPayload {
 			},
 		}
 		return payload
+	case "hydrograph_stats":
+		paths := make([]string, 1)
+		paths[0] = inputSource + "config_aws.yml"
+		mconfig.Name = "hydrograph_stats"
+		mconfig.ModelConfigurationPaths = paths
+		inputs := make([]ComputedOutput, 1)
+		inputs[0] = ComputedOutput{
+			Name:      "hsm.csv",
+			Parameter: "flow",
+			Format:    "csv",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3?",
+				Authority: "/data/realization_0/event_1",
+				Fragment:  "hsm.csv",
+			},
+		}
+		outputs := make([]PossibleOutput, 1)
+		outputs[0] = PossibleOutput{
+			Name:      "results-wat.json",
+			Parameter: "scalar",
+			Format:    "json",
+		}
+		payload := ModelPayload{
+			TargetPlugin:       plugin.Name,
+			PluginImageAndTag:  plugin.ImageAndTag,
+			ModelConfiguration: mconfig,
+			ModelLinks: ModelLinks{
+				LinkedInputs:     inputs,
+				NecessaryOutputs: outputs,
+			},
+		}
+		return payload
 	}
 	payload := ModelPayload{
 		TargetPlugin:       plugin.Name,

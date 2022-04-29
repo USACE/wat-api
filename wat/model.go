@@ -13,7 +13,7 @@ type ModelManifest struct {
 	Outputs            []PossibleOutput `json:"outputs" yaml:"outputs"`
 }
 type ModelLinks struct {
-	LinkedInputs     []SatisfiedLink  `json:"linked_inputs" yaml:"linked_inputs"`
+	LinkedInputs     []ComputedOutput `json:"linked_inputs" yaml:"linked_inputs"`
 	NecessaryOutputs []PossibleOutput `json:"required_outputs" yaml:"required_outputs"`
 }
 type ModelPayload struct {

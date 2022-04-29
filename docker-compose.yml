@@ -1,7 +1,4 @@
 version: '3'
-networks:
-  default:
-    name: wat
 services:
   sqs:
     container_name: sqs
@@ -82,7 +79,7 @@ services:
       - ./:/workspaces
   lambda:
     container_name: lambda
-    image: williamlehman/lambda-mock:v0.0.12
+    image: williamlehman/lambda-mock:v0.0.13
     depends_on:
       - sqs
       - cache

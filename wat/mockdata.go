@@ -1,18 +1,26 @@
 package wat
 
-func MockModelPayload(inputSource string, plugin Plugin) ModelPayload {
+func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 	mconfig := ModelConfiguration{}
 	switch plugin.Name {
 	case "fragilitycurveplugin":
-		paths := make([]string, 1)
-		paths[0] = inputSource + "fc.json"
+		paths := make([]ResourceInfo, 1)
+		paths[0] = ResourceInfo{
+			Scheme:    inputSource.Scheme,
+			Authority: inputSource.Authority,
+			Fragment:  "fc.json",
+		}
 		mconfig.Name = "levee_failures"
-		mconfig.ModelConfigurationPaths = paths
+		mconfig.ModelConfigurationResources = paths
 	case "hydrograph_scaler":
-		paths := make([]string, 1)
-		paths[0] = inputSource + "hsm.json"
+		paths := make([]ResourceInfo, 1)
+		paths[0] = ResourceInfo{
+			Scheme:    inputSource.Scheme,
+			Authority: inputSource.Authority,
+			Fragment:  "hsm.json",
+		}
 		mconfig.Name = "hydrographs"
-		mconfig.ModelConfigurationPaths = paths
+		mconfig.ModelConfigurationResources = paths
 		outputs := make([]PossibleOutput, 3)
 		outputs[0] = PossibleOutput{
 			Name:      "hsm1.csv",
@@ -39,10 +47,14 @@ func MockModelPayload(inputSource string, plugin Plugin) ModelPayload {
 		}
 		return payload
 	case "hydrograph_stats":
-		paths := make([]string, 1)
-		paths[0] = inputSource + "config_aws.yml"
+		paths := make([]ResourceInfo, 1)
+		paths[0] = ResourceInfo{
+			Scheme:    inputSource.Scheme,
+			Authority: inputSource.Authority,
+			Fragment:  "config_aws.yml",
+		}
 		mconfig.Name = "hydrograph_stats"
-		mconfig.ModelConfigurationPaths = paths
+		mconfig.ModelConfigurationResources = paths
 		inputs := make([]ComputedOutput, 1)
 		inputs[0] = ComputedOutput{
 			Name:      "hsm.csv",

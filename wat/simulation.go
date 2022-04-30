@@ -36,13 +36,13 @@ type StochasticJob struct {
 	//dag
 	SelectedPlugins              []Plugin `json:"plugins"` //ultimately this needs to be part of the dag somehow
 	TimeWindow                   `json:"timewindow"`
-	TotalRealizations            int    `json:"totalrealizations"`
-	EventsPerRealization         int    `json:"eventsperrealization"`
-	InitialRealizationSeed       int64  `json:"initialrealizationseed"`
-	InitialEventSeed             int64  `json:"intitaleventseed"`
-	Outputdestination            string `json:"outputdestination"`
-	Inputsource                  string `json:"inputsource"`
-	DeleteOutputAfterRealization bool   `json:"delete_after_realization"`
+	TotalRealizations            int          `json:"totalrealizations"`
+	EventsPerRealization         int          `json:"eventsperrealization"`
+	InitialRealizationSeed       int64        `json:"initialrealizationseed"`
+	InitialEventSeed             int64        `json:"intitaleventseed"`
+	Outputdestination            ResourceInfo `json:"outputdestination"`
+	Inputsource                  ResourceInfo `json:"inputsource"`
+	DeleteOutputAfterRealization bool         `json:"delete_after_realization"`
 }
 
 func (sj StochasticJob) ProvisionResources() error {
@@ -107,7 +107,6 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, 
 				for idx, li := range payload.LinkedInputs {
 					li.Scheme = config.S3_ENDPOINT + "/" + config.S3_BUCKET
 					li.Authority = ec.OutputDestination
-					li.Fragment = "hsm1.csv" //how do i figure this out?
 					payload.LinkedInputs[idx] = li
 				}
 				bytes, err := yaml.Marshal(payload)

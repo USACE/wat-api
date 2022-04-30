@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/utils"
-	"github.com/usace/wat-api/wat"
 )
 
 type WatHandler struct {
@@ -52,13 +51,11 @@ func (wh *WatHandler) Version(c echo.Context) error {
 }
 func (wh *WatHandler) Plugins(c echo.Context) error {
 	//ping the network to figure out what plugins are active?
-	plugins := make([]wat.Plugin, 2)
-	plugins[0] = wat.Plugin{Name: "plugin a"}
-	plugins[1] = wat.Plugin{Name: "plugin b"}
+	plugins := MockPlugins()
 	return c.JSON(http.StatusOK, plugins)
 }
 func (wh *WatHandler) ExecuteJob(c echo.Context) error {
-	sj := MockStochasticJob()
+	sj := MockStochasticJob(wh.config)
 	configs, err := sj.GeneratePayloads(wh.queue, wh.store, wh.cache, wh.config)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)

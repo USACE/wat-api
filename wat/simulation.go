@@ -65,13 +65,12 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS) error {
 	fmt.Println(output.String())
 	return nil
 }
-func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, cache *redis.Client, config config.WatConfig) ([]ModelPayload, error) {
+func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, cache *redis.Client, config config.WatConfig) error {
 	err := sj.ProvisionResources()
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
-	payloads := make([]ModelPayload, 0)
 	if err != nil {
-		return payloads, err
+		return err
 	}
 	plugins := sj.SelectedPlugins
 	pluginPayloadStubs := make([]ModelPayload, len(plugins))
@@ -92,39 +91,44 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, 
 		}
 		for j := 0; j < sj.EventsPerRealization; j++ { //natural variability loop
 			//ultimately need to send messages for each task in the event (defined by the dag)
-			for idx, _ := range plugins {
-				eventSeed := eventRandomGeneratorByPlugin[idx].Int63()
-				event := IndexedSeed{Index: j, Seed: eventSeed}
-				ec := EventConfiguration{
-					OutputDestination: ResourceInfo{
-						Scheme:    config.S3_ENDPOINT + config.S3_BUCKET,
-						Authority: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination.Authority, "realization_", realizationIndexedSeeds[idx].Index, "event_", event.Index),
-					},
-					Realization:     realizationIndexedSeeds[idx],
-					Event:           event,
-					EventTimeWindow: sj.TimeWindow,
-				}
-				pluginPayloadStubs[idx].EventConfiguration = ec
-				payloads = append(payloads, pluginPayloadStubs[idx])
-				payload := pluginPayloadStubs[idx]
-				for idx, li := range payload.LinkedInputs {
-					li.Scheme = ec.OutputDestination.Scheme
-					li.Authority = ec.OutputDestination.Authority
-					payload.LinkedInputs[idx] = li
-				}
-				bytes, err := yaml.Marshal(payload)
-				if err != nil {
-					return payloads, err
-				}
-				//need to join this up with the model information to create a model manifest.
-				err = sj.SendMessage(string(bytes), sqs)
-				if err != nil {
-					fmt.Println(err)
-					return payloads, err
-				}
-			}
-
+			//event randoms will spawn in unpredictable ways if we dont pre spawn them.
+			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, eventRandomGeneratorByPlugin)
 		}
 	}
-	return payloads, nil
+	return nil
+}
+
+func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventRandomGeneratorByPlugin []*rand.Rand) {
+	payloads := make([]ModelPayload, 0)
+	for idx, _ := range sj.SelectedPlugins {
+		eventSeed := eventRandomGeneratorByPlugin[idx].Int63()
+		event := IndexedSeed{Index: j, Seed: eventSeed}
+		ec := EventConfiguration{
+			OutputDestination: ResourceInfo{
+				Scheme:    config.S3_ENDPOINT + config.S3_BUCKET,
+				Authority: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination.Authority, "realization_", realizationIndexedSeeds[idx].Index, "event_", event.Index),
+			},
+			Realization:     realizationIndexedSeeds[idx],
+			Event:           event,
+			EventTimeWindow: sj.TimeWindow,
+		}
+		pluginPayloadStubs[idx].EventConfiguration = ec
+		payloads = append(payloads, pluginPayloadStubs[idx])
+		payload := pluginPayloadStubs[idx]
+		for idx, li := range payload.LinkedInputs {
+			li.Scheme = ec.OutputDestination.Scheme
+			li.Authority = ec.OutputDestination.Authority
+			payload.LinkedInputs[idx] = li
+		}
+		bytes, err := yaml.Marshal(payload)
+		if err != nil {
+			panic(err)
+		}
+		//need to join this up with the model information to create a model manifest.
+		err = sj.SendMessage(string(bytes), sqs)
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+	}
 }

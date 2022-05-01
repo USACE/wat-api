@@ -56,9 +56,9 @@ func (wh *WatHandler) Plugins(c echo.Context) error {
 }
 func (wh *WatHandler) ExecuteJob(c echo.Context) error {
 	sj := MockStochasticJob(wh.config)
-	configs, err := sj.GeneratePayloads(wh.queue, wh.store, wh.cache, wh.config)
+	err := sj.GeneratePayloads(wh.queue, wh.store, wh.cache, wh.config)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	return c.JSON(http.StatusOK, configs)
+	return c.String(http.StatusOK, "Compute Started")
 }

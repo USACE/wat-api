@@ -21,9 +21,9 @@ type ComputedOutput struct {
 	ResourceInfo `json:"resource_info" yaml:"resource_info"`
 }
 type ResourceInfo struct {
-	Scheme    string
-	Authority string
-	Fragment  string
+	Scheme    string `json:"schema" yaml:"schema"`
+	Authority string `json:"authority" yaml:"authority"`
+	Fragment  string `json:"fragment" yaml:"fragment"`
 	//https://pkg.go.dev/go.lsp.dev/uri  consider this.
 }
 

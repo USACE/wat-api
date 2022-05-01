@@ -96,17 +96,20 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, 
 				eventSeed := eventRandomGeneratorByPlugin[idx].Int63()
 				event := IndexedSeed{Index: j, Seed: eventSeed}
 				ec := EventConfiguration{
-					OutputDestination: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination, "realization_", realizationIndexedSeeds[idx].Index, "event_", event.Index),
-					Realization:       realizationIndexedSeeds[idx],
-					Event:             event,
-					EventTimeWindow:   sj.TimeWindow,
+					OutputDestination: ResourceInfo{
+						Scheme:    config.S3_ENDPOINT + config.S3_BUCKET,
+						Authority: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination.Authority, "realization_", realizationIndexedSeeds[idx].Index, "event_", event.Index),
+					},
+					Realization:     realizationIndexedSeeds[idx],
+					Event:           event,
+					EventTimeWindow: sj.TimeWindow,
 				}
 				pluginPayloadStubs[idx].EventConfiguration = ec
 				payloads = append(payloads, pluginPayloadStubs[idx])
 				payload := pluginPayloadStubs[idx]
 				for idx, li := range payload.LinkedInputs {
-					li.Scheme = config.S3_ENDPOINT + "/" + config.S3_BUCKET
-					li.Authority = ec.OutputDestination
+					li.Scheme = ec.OutputDestination.Scheme
+					li.Authority = ec.OutputDestination.Authority
 					payload.LinkedInputs[idx] = li
 				}
 				bytes, err := yaml.Marshal(payload)

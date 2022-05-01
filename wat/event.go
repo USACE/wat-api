@@ -1,10 +1,10 @@
 package wat
 
 type EventConfiguration struct {
-	OutputDestination string      `json:"output_destination" yaml:"output_destination"` //how do we manage ephemiral
-	Realization       IndexedSeed `json:"realization" yaml:"realization"`               //knowledge uncertainty
-	Event             IndexedSeed `json:"event" yaml:"event"`                           //natural variability
-	EventTimeWindow   TimeWindow  `json:"time_window" yaml:"time_window"`
+	OutputDestination ResourceInfo `json:"output_destination" yaml:"output_destination"` //how do we manage ephemiral
+	Realization       IndexedSeed  `json:"realization" yaml:"realization"`               //knowledge uncertainty
+	Event             IndexedSeed  `json:"event" yaml:"event"`                           //natural variability
+	EventTimeWindow   TimeWindow   `json:"time_window" yaml:"time_window"`
 }
 
 type IndexedSeed struct {

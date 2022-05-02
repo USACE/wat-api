@@ -92,20 +92,24 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, 
 		for j := 0; j < sj.EventsPerRealization; j++ { //natural variability loop
 			//ultimately need to send messages for each task in the event (defined by the dag)
 			//event randoms will spawn in unpredictable ways if we dont pre spawn them.
-			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, eventRandomGeneratorByPlugin)
+			pluginEventIndexedSeeds := make([]IndexedSeed, len(plugins))
+			for idx, _ := range plugins {
+				pluginEventSeed := realizationRandomGeneratorByPlugin[idx].Int63()
+				pluginEventIndexedSeeds[idx] = IndexedSeed{Index: j, Seed: pluginEventSeed}
+			}
+			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds)
 		}
 	}
 	return nil
 }
 
-func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventRandomGeneratorByPlugin []*rand.Rand) {
+func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventIndexedSeedsByPlugin []IndexedSeed) {
 	payloads := make([]ModelPayload, 0)
 	for idx, _ := range sj.SelectedPlugins {
-		eventSeed := eventRandomGeneratorByPlugin[idx].Int63()
-		event := IndexedSeed{Index: j, Seed: eventSeed}
+		event := eventIndexedSeedsByPlugin[idx]
 		ec := EventConfiguration{
 			OutputDestination: ResourceInfo{
-				Scheme:    config.S3_ENDPOINT + config.S3_BUCKET,
+				Scheme:    sj.Outputdestination.Scheme, //config.S3_ENDPOINT + "/" + config.S3_BUCKET,
 				Authority: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination.Authority, "realization_", realizationIndexedSeeds[idx].Index, "event_", event.Index),
 			},
 			Realization:     realizationIndexedSeeds[idx],

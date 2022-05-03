@@ -21,18 +21,18 @@ func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 		}
 		mconfig.Name = "hydrographs"
 		mconfig.ModelConfigurationResources = paths
-		outputs := make([]PossibleOutput, 3)
-		outputs[0] = PossibleOutput{
+		outputs := make([]Output, 3)
+		outputs[0] = Output{
 			Name:      "hsm1.csv",
 			Parameter: "flow",
 			Format:    "csv",
 		}
-		outputs[1] = PossibleOutput{
+		outputs[1] = Output{
 			Name:      "hsm2.csv",
 			Parameter: "flow",
 			Format:    "csv",
 		}
-		outputs[2] = PossibleOutput{
+		outputs[2] = Output{
 			Name:      "hsm3.csv",
 			Parameter: "flow",
 			Format:    "csv",
@@ -66,8 +66,8 @@ func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 				Fragment:  "hsm.csv",
 			},
 		}
-		outputs := make([]PossibleOutput, 1)
-		outputs[0] = PossibleOutput{
+		outputs := make([]Output, 1)
+		outputs[0] = Output{
 			Name:      "results-wat.json",
 			Parameter: "scalar",
 			Format:    "json",

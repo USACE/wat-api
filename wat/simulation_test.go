@@ -16,12 +16,13 @@ func TestStochasticPayloadGeneration(t *testing.T) {
 		EventsPerRealization:         10,
 		InitialRealizationSeed:       1234,
 		InitialEventSeed:             1234,
-		Outputdestination:            "testing",
-		Inputsource:                  "testSettings.InputDataDir",
+		Outputdestination:            ResourceInfo{Authority: "testing"},
+		Inputsource:                  ResourceInfo{Authority: "testSettings.InputDataDir"},
 		DeleteOutputAfterRealization: false,
 	}
 	config := config.WatConfig{}
-	_, err := sj.GeneratePayloads(nil, nil, nil, config)
+	//fs := filestore.FileStore{}
+	err := sj.GeneratePayloads(nil, nil, nil, config)
 	if err != nil {
 		t.Fail()
 	}

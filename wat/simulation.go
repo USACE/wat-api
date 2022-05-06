@@ -3,6 +3,7 @@ package wat
 import (
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/USACE/filestore"
 	"github.com/aws/aws-sdk-go/aws"
@@ -19,7 +20,7 @@ type Job interface {
 	//sendmessage
 	SendMessage(message string, sqs *sqs.SQS) error
 	//does this thing need to "run" or "compute"
-	GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, cache *redis.Client) error
+	GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client) error
 }
 
 //DeterministicJob implements the Job interface for a Deterministic Compute
@@ -45,18 +46,53 @@ type StochasticJob struct {
 	DeleteOutputAfterRealization bool         `json:"delete_after_realization"`
 }
 
-func (sj StochasticJob) ProvisionResources() error {
+func (sj StochasticJob) ProvisionResources(queue *sqs.SQS) error {
 	fmt.Println("provisioning resources...")
+	/*	for _, p := range sj.SelectedPlugins {
+			piq := sqs.CreateQueueInput{
+				QueueName: &p.Name,
+			}
+			output, err := queue.CreateQueue(&piq)
+			if err != nil {
+				return err
+			}
+			fmt.Println(output.QueueUrl, "created")
+		}
+	*/
+	messages := "messages"
+	miq := sqs.CreateQueueInput{
+		QueueName: &messages,
+	}
+	output, err := queue.CreateQueue(&miq)
+	if err != nil {
+		return err
+	}
+	fmt.Println(output.QueueUrl, "created")
+	events := "events"
+	eiq := sqs.CreateQueueInput{
+		QueueName: &events,
+	}
+	output, err = queue.CreateQueue(&eiq)
+	if err != nil {
+		return err
+	}
+	fmt.Println(output.QueueUrl, "created")
 	return nil
 }
-func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS) error {
+func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS, queueName string) error {
 	fmt.Println("sending message: " + message)
-	queueURL := fmt.Sprintf("%v/queue/messages", queue.Endpoint)
-	fmt.Println("sending message to:", queueURL)
+	input := sqs.GetQueueUrlInput{
+		QueueName: &queueName,
+	}
+	queueURL, err := queue.GetQueueUrl(&input) //fmt.Sprintf("%v/queue/messages", queue.Endpoint)
+	if err != nil {
+		return err
+	}
+	fmt.Println("sending message to:", queueURL.QueueUrl)
 	output, err := queue.SendMessage(&sqs.SendMessageInput{
 		DelaySeconds: aws.Int64(1),
 		MessageBody:  aws.String(message),
-		QueueUrl:     &queueURL,
+		QueueUrl:     queueURL.QueueUrl,
 	})
 	fmt.Println("message sent")
 	if err != nil {
@@ -65,8 +101,8 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS) error {
 	fmt.Println(output.String())
 	return nil
 }
-func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, cache *redis.Client, config config.WatConfig) error {
-	err := sj.ProvisionResources()
+func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client, config config.WatConfig) error {
+	err := sj.ProvisionResources(sqs)
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
 	if err != nil {
@@ -97,15 +133,28 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs *filestore.FileStore, 
 				pluginEventSeed := realizationRandomGeneratorByPlugin[idx].Int63()
 				pluginEventIndexedSeeds[idx] = IndexedSeed{Index: j, Seed: pluginEventSeed}
 			}
-			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds)
+			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache)
 		}
 	}
 	return nil
 }
 
-func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventIndexedSeedsByPlugin []IndexedSeed) {
+func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventIndexedSeedsByPlugin []IndexedSeed, fs filestore.FileStore, cache *redis.Client) {
 	payloads := make([]ModelPayload, 0)
+	key := ""
 	for idx, _ := range sj.SelectedPlugins {
+		if key != "" {
+			for {
+				value := cache.Get(key)
+				fmt.Println(value)
+				if value.Val() == "in progress" {
+					time.Sleep(time.Second * 2)
+				} else {
+					break
+				}
+			}
+
+		}
 		event := eventIndexedSeedsByPlugin[idx]
 		ec := EventConfiguration{
 			OutputDestination: ResourceInfo{
@@ -128,11 +177,33 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 		if err != nil {
 			panic(err)
 		}
-		//need to join this up with the model information to create a model manifest.
-		err = sj.SendMessage(string(bytes), sqs)
+		//put payload in s3
+		path := payload.EventConfiguration.OutputDestination.Authority + "/" + payload.Name + "_payload.yml"
+		fmt.Println("putting object in fs:", path)
+		_, err = fs.PutObject(path, bytes)
+		if err != nil {
+			fmt.Println("failure to push payload to filestore:", err)
+			panic(err)
+		}
+		//set status in redis
+		key = payload.PluginImageAndTag + "_" + payload.Name + "_R" + fmt.Sprint(payload.Realization.Index) + "_E" + fmt.Sprint(payload.Event.Index)
+		cache.Set(key, "in progress", 0)
+		//send message to sqs
+		err = sj.SendMessage(string(bytes), sqs, "messages") //p.Name
 		if err != nil {
 			fmt.Println(err)
 			panic(err)
 		}
 	}
+	for {
+		value := cache.Get(key)
+		fmt.Println(value)
+		if value.Val() == "in progress" {
+			time.Sleep(time.Second * 2)
+		} else {
+			fmt.Println("Realization", realizationIndexedSeeds[0].Index, "Event", eventIndexedSeedsByPlugin[0].Index, "Complete!")
+			break
+		}
+	}
+
 }

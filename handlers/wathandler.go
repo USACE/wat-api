@@ -13,7 +13,7 @@ import (
 )
 
 type WatHandler struct {
-	store   *filestore.FileStore
+	store   filestore.FileStore
 	queue   *sqs.SQS
 	cache   *redis.Client
 	AppPort string
@@ -28,7 +28,7 @@ func CreateWatHandler() (*WatHandler, error) {
 	if err != nil {
 		return &wh, err
 	}
-	wh.store = &store
+	wh.store = store
 	sqs, err := loader.InitQueue()
 	if err != nil {
 		return &wh, err

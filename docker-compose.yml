@@ -79,7 +79,7 @@ services:
       - ./:/workspaces
   lambda:
     container_name: lambda
-    image: williamlehman/lambda-mock:v0.0.16
+    image: williamlehman/lambda-mock:v0.0.17
     depends_on:
       - sqs
       - cache
@@ -96,7 +96,7 @@ services:
       - S3_ENDPOINT=host.docker.internal:9000
       - S3_DISABLE_SSL=True
       - S3_FORCE_PATH_STYLE=True
-      - REDIS_HOST=cache
+      - REDIS_HOST=host.docker.internal
       - REDIS_PORT=6379
       - REDIS_PASSWORD=eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
       - SQS_ENDPOINT=http://host.docker.internal:9324

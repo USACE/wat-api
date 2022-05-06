@@ -10,18 +10,18 @@ import (
 )
 
 func TestModelManifestSeralization(t *testing.T) {
-	inputs := make([]RequiredInput, 0)
-	outputs := make([]PossibleOutput, 1)
-	outputs[0] = PossibleOutput{
+	inputs := make([]Input, 0)
+	outputs := make([]Output, 1)
+	outputs[0] = Output{
 		Name:      "hydrograph1",
 		Parameter: "flow",
 		Format:    "csv",
 	}
-	paths := make([]string, 1)
-	paths[0] = "/hsm.json"
+	paths := make([]ResourceInfo, 1)
+	paths[0] = ResourceInfo{Fragment: "/hsm.json"}
 	mc := ModelConfiguration{
-		Name:                    "TestModel",
-		ModelConfigurationPaths: paths,
+		Name:                        "TestModel",
+		ModelConfigurationResources: paths,
 	}
 	mm := ModelManifest{
 		ModelConfiguration: mc,
@@ -41,10 +41,12 @@ func TestModelPayloadSeralization(t *testing.T) {
 	event := IndexedSeed{Index: 1, Seed: 5678}
 	realization := IndexedSeed{Index: 1, Seed: 1234}
 	eventConfiguration := EventConfiguration{
-		OutputDestination: "/testing/",
-		Realization:       realization,
-		Event:             event,
-		EventTimeWindow:   tw,
+		OutputDestination: ResourceInfo{
+			Authority: "/testing/",
+		},
+		Realization:     realization,
+		Event:           event,
+		EventTimeWindow: tw,
 	}
 	//someone has to make data somewhere... probably needs to be computed output
 	prevModelOutput := make([]ComputedOutput, 2)
@@ -58,28 +60,28 @@ func TestModelPayloadSeralization(t *testing.T) {
 		Parameter: "distance",
 		Format:    "mi",
 	}
-	inputs := make([]RequiredInput, 2)
-	inputs[0] = RequiredInput{
+	inputs := make([]Input, 2)
+	inputs[0] = Input{
 		Name:      "input1",
 		Parameter: "speed",
 		Format:    "mph",
 	}
-	inputs[1] = RequiredInput{
+	inputs[1] = Input{
 		Name:      "input2",
 		Parameter: "distance",
 		Format:    "mi",
 	}
-	outputs := make([]PossibleOutput, 1)
-	outputs[0] = PossibleOutput{
+	outputs := make([]Output, 1)
+	outputs[0] = Output{
 		Name:      "output1",
 		Parameter: "time",
 		Format:    "hours",
 	}
-	paths := make([]string, 1)
-	paths[0] = "/hsm.json"
+	paths := make([]ResourceInfo, 1)
+	paths[0] = ResourceInfo{Fragment: "/hsm.json"}
 	mc := ModelConfiguration{
-		Name:                    "TestModel",
-		ModelConfigurationPaths: paths,
+		Name:                        "TestModel",
+		ModelConfigurationResources: paths,
 	}
 	/*m := Model{
 		ModelConfiguration: mc,

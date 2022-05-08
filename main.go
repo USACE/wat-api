@@ -22,7 +22,7 @@ func main() {
 	public.GET("wat-api/version", wHandler.Version)
 	public.GET("wat-api/plugins", wHandler.Plugins)
 	//Private Routes
-	private.GET("wat-api/compute", wHandler.ExecuteJob) //needs to be a post and post the job config
+	private.POST("wat-api/compute", wHandler.ExecuteJob) //needs to be a post and post the job config
 	log.Print("starting server on port " + wHandler.AppPort)
 	log.Fatal(e.Start(":" + wHandler.AppPort))
 }

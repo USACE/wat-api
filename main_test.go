@@ -25,13 +25,16 @@ func TestPostCompute(t *testing.T) {
 		t.Fail()
 	}
 	fmt.Println(response)
-	//defer response.Body.Close()
-	/*
-		b, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Printf("%s", b)
-	*/
+}
+func TestSerializeStochasticJob(t *testing.T) {
+	wHandler, err := handler.CreateWatHandler()
+	if err != nil {
+		t.Fail()
+	}
+	sj := handler.MockStochasticJob(wHandler.Config())
+	byteblob, err := json.Marshal(sj)
+	if err != nil {
+		t.Fail()
+	}
+	fmt.Println(string(byteblob))
 }

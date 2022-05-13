@@ -22,7 +22,7 @@ func TestStochasticPayloadGeneration(t *testing.T) {
 	}
 	config := config.WatConfig{}
 	//fs := filestore.FileStore{}
-	err := sj.GeneratePayloads(nil, nil, nil, config)
+	err := sj.GeneratePayloads(nil, nil, nil, config, nil)
 	if err != nil {
 		t.Fail()
 	}

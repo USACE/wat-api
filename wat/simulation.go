@@ -7,6 +7,7 @@ import (
 
 	"github.com/USACE/filestore"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/batch"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/go-redis/redis"
 	"github.com/usace/wat-api/config"
@@ -101,8 +102,13 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS, queueName st
 	fmt.Println(output.String())
 	return nil
 }
-func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client, config config.WatConfig) error {
+func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client, config config.WatConfig, awsBatch *batch.Batch) error {
 	err := sj.ProvisionResources(sqs)
+	/*awsBatch.SubmitJob(
+		&batch.SubmitJobInput{
+			DependsOn: ,
+		}
+	)*/
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
 	if err != nil {

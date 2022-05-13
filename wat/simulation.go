@@ -49,6 +49,8 @@ type StochasticJob struct {
 
 func (sj StochasticJob) ProvisionResources(queue *sqs.SQS) error {
 	fmt.Println("provisioning resources...")
+	//should i be making the batch queues here?
+
 	/*	for _, p := range sj.SelectedPlugins {
 			piq := sqs.CreateQueueInput{
 				QueueName: &p.Name,
@@ -139,17 +141,24 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 				pluginEventSeed := realizationRandomGeneratorByPlugin[idx].Int63()
 				pluginEventIndexedSeeds[idx] = IndexedSeed{Index: j, Seed: pluginEventSeed}
 			}
-			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache)
+			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache, awsBatch)
 		}
 	}
 	return nil
 }
 
-func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventIndexedSeedsByPlugin []IndexedSeed, fs filestore.FileStore, cache *redis.Client) {
+func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventIndexedSeedsByPlugin []IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch) {
 	payloads := make([]ModelPayload, 0)
 	key := ""
+	dependsOn := make([]*batch.JobDependency, 1)
+
 	for idx, _ := range sj.SelectedPlugins {
 		if key != "" {
+			//dependency in batch
+			dependsOn[0] = &batch.JobDependency{
+				JobId: &key,
+			}
+			//dependency through redis.
 			for {
 				value := cache.Get(key)
 				fmt.Println(value)
@@ -196,6 +205,26 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 		cache.Set(key, "in progress", 0)
 		//send message to sqs
 		err = sj.SendMessage(string(bytes), sqs, "messages") //p.Name
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+		//send a job to batch
+		proptags := true
+		batchOutput, err := awsBatch.SubmitJob(&batch.SubmitJobInput{
+			DependsOn:                  dependsOn,
+			JobDefinition:              &payload.PluginImageAndTag, //need to verify this.
+			JobName:                    &key,
+			JobQueue:                   &key,      //i have no queue
+			Parameters:                 nil,       //parameters?
+			PropagateTags:              &proptags, //i think.
+			RetryStrategy:              nil,
+			SchedulingPriorityOverride: nil,
+			ShareIdentifier:            nil,
+			Tags:                       nil,
+			Timeout:                    nil,
+		})
+		fmt.Println(batchOutput)
 		if err != nil {
 			fmt.Println(err)
 			panic(err)

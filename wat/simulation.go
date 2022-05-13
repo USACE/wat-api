@@ -47,10 +47,33 @@ type StochasticJob struct {
 	DeleteOutputAfterRealization bool         `json:"delete_after_realization"`
 }
 
-func (sj StochasticJob) ProvisionResources(queue *sqs.SQS) error {
+func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch) error {
 	fmt.Println("provisioning resources...")
-	//should i be making the batch queues here?
-
+	//create a compute environments
+	for _, p := range sj.SelectedPlugins {
+		fmt.Println("creating compute environment for", p.ImageAndTag)
+		computeEnvironments := make([]*batch.ComputeEnvironmentOrder, 1)
+		var order int64 = 0
+		environment := "EC2"
+		computeEnvironments[0] = &batch.ComputeEnvironmentOrder{
+			ComputeEnvironment: &environment,
+			Order:              &order, //lower gets priority?
+		}
+		//should i be making the batch queues here?
+		jobQueueName := p.Name
+		batchQueueOutput, err := awsBatch.CreateJobQueue(&batch.CreateJobQueueInput{
+			ComputeEnvironmentOrder: computeEnvironments,
+			JobQueueName:            &jobQueueName,
+			Priority:                nil, //higher gets priority
+			Tags:                    nil,
+			SchedulingPolicyArn:     nil, //if not set FIFO
+			State:                   nil, //&batch.JQStatusValid,"VALID"
+		})
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(batchQueueOutput)
+	}
 	/*	for _, p := range sj.SelectedPlugins {
 			piq := sqs.CreateQueueInput{
 				QueueName: &p.Name,
@@ -105,12 +128,7 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS, queueName st
 	return nil
 }
 func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client, config config.WatConfig, awsBatch *batch.Batch) error {
-	err := sj.ProvisionResources(sqs)
-	/*awsBatch.SubmitJob(
-		&batch.SubmitJobInput{
-			DependsOn: ,
-		}
-	)*/
+	err := sj.ProvisionResources(sqs, awsBatch)
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
 	if err != nil {
@@ -224,9 +242,9 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			Tags:                       nil,
 			Timeout:                    nil,
 		})
-		fmt.Println(batchOutput)
+		fmt.Println("batchoutput", batchOutput)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("batcherror", err)
 			panic(err)
 		}
 	}

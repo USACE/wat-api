@@ -52,11 +52,41 @@ func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch
 	//create a compute environments
 	for _, p := range sj.SelectedPlugins {
 		fmt.Println("creating compute environment for", p.ImageAndTag)
+		computeEnvironment := &batch.CreateComputeEnvironmentInput{
+			ComputeEnvironmentName: &p.ImageAndTag,
+			ComputeResources: &batch.ComputeResource{
+				DesiredvCpus: aws.Int64(2),
+				Ec2KeyPair:   &p.Name, //not sure we need it
+				InstanceRole: nil,     //this probably needs to be preset
+				InstanceTypes: []*string{
+					aws.String("m4.large"),
+					aws.String("m4.micro"),
+				},
+				MaxvCpus: aws.Int64(128),
+				MinvCpus: aws.Int64(0),
+				SecurityGroupIds: []*string{
+					nil, //needs to be passed in somehow.
+				},
+				Subnets: []*string{
+					nil, //not sure i need this
+				},
+				Tags: map[string]*string{
+					"nil": nil,
+				},
+				Type: aws.String("EC2"),
+			},
+			ServiceRole: nil, //this is needed
+			State:       aws.String("ENABLED"),
+			Type:        aws.String("MANAGED"),
+		}
+		output, err := awsBatch.CreateComputeEnvironment(computeEnvironment)
+		if err != nil {
+			fmt.Println(err)
+		}
 		computeEnvironments := make([]*batch.ComputeEnvironmentOrder, 1)
 		var order int64 = 0
-		environment := "EC2"
 		computeEnvironments[0] = &batch.ComputeEnvironmentOrder{
-			ComputeEnvironment: &environment,
+			ComputeEnvironment: output.ComputeEnvironmentArn,
 			Order:              &order, //lower gets priority?
 		}
 		//should i be making the batch queues here?

@@ -16,6 +16,7 @@ type ModelComputeResources struct {
 
 //ModelManifest is defined by a set of files, provides inputs and ouptuts, is recognizable by a Model Library MCAT
 type ModelManifest struct {
+	Plugin                `json:"plugin" yaml:"plugin"`
 	ModelConfiguration    `json:"model_configuration" yaml:"model_configuration"`
 	ModelComputeResources `json:"model_compute_resources" yaml:"model_compute_resources"`
 	Inputs                []Input  `json:"inputs" yaml:"inputs"`

@@ -64,7 +64,11 @@ func (wh WatHandler) Config() config.WatConfig {
 }
 func (wh *WatHandler) Plugins(c echo.Context) error {
 	//ping the network to figure out what plugins are active?
-	plugins := MockPlugins()
+	plugins := make([]wat.Plugin, 0)
+	dag := MockDag()
+	for _, m := range dag.Nodes {
+		plugins = append(plugins, m.Plugin)
+	}
 	return c.JSON(http.StatusOK, plugins)
 }
 func (wh *WatHandler) ExecuteJob(c echo.Context) error {

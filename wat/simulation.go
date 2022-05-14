@@ -36,7 +36,8 @@ type DeterministicJob struct {
 //StochasticJob implements the job interface for a Stochastic Simulation
 type StochasticJob struct {
 	//dag
-	SelectedPlugins              []Plugin `json:"plugins"` //ultimately this needs to be part of the dag somehow
+	//SelectedPlugins              []Plugin `json:"plugins"` //ultimately this needs to be part of the dag somehow
+	Dag                          DirectedAcyclicGraph `json:"directed_acyclic_graph"`
 	TimeWindow                   `json:"timewindow"`
 	TotalRealizations            int          `json:"totalrealizations"`
 	EventsPerRealization         int          `json:"eventsperrealization"`
@@ -50,14 +51,14 @@ type StochasticJob struct {
 func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch) error {
 	fmt.Println("provisioning resources...")
 	//create a compute environments
-	for _, p := range sj.SelectedPlugins {
-		fmt.Println("creating compute environment for", p.ImageAndTag)
+	for _, n := range sj.Dag.Nodes {
+		fmt.Println("creating compute environment for", n.ImageAndTag)
 		computeEnvironment := &batch.CreateComputeEnvironmentInput{
-			ComputeEnvironmentName: &p.ImageAndTag,
+			ComputeEnvironmentName: &n.ImageAndTag,
 			ComputeResources: &batch.ComputeResource{
 				DesiredvCpus: aws.Int64(2),
-				Ec2KeyPair:   &p.Name, //not sure we need it
-				InstanceRole: nil,     //this probably needs to be preset
+				Ec2KeyPair:   &n.ModelConfiguration.Name, //not sure we need it
+				InstanceRole: nil,                        //this probably needs to be preset
 				InstanceTypes: []*string{
 					aws.String("m4.large"),
 					aws.String("m4.micro"),
@@ -90,7 +91,7 @@ func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch
 			Order:              &order, //lower gets priority?
 		}
 		//should i be making the batch queues here?
-		jobQueueName := p.Name
+		jobQueueName := fmt.Sprintf("%v_%v", n.ModelConfiguration.Name, n.Plugin.ImageAndTag)
 		batchQueueOutput, err := awsBatch.CreateJobQueue(&batch.CreateJobQueueInput{
 			ComputeEnvironmentOrder: computeEnvironments,
 			JobQueueName:            &jobQueueName,
@@ -164,28 +165,28 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 	if err != nil {
 		return err
 	}
-	plugins := sj.SelectedPlugins
-	pluginPayloadStubs := make([]ModelPayload, len(plugins))
-	realizationRandomGeneratorByPlugin := make([]*rand.Rand, len(plugins))
-	eventRandomGeneratorByPlugin := make([]*rand.Rand, len(plugins))
-	for idx, p := range plugins {
-		pluginPayloadStubs[idx] = MockModelPayload(sj.Inputsource, p) //TODO: remove once DAG is developed.
+	nodes := sj.Dag.Nodes
+	pluginPayloadStubs := make([]ModelPayload, len(nodes))
+	realizationRandomGeneratorByPlugin := make([]*rand.Rand, len(nodes))
+	eventRandomGeneratorByPlugin := make([]*rand.Rand, len(nodes))
+	for idx, n := range nodes {
+		pluginPayloadStubs[idx] = MockModelPayload(sj.Inputsource, n.Plugin) //TODO: remove once DAG is developed to create a payload from a linked manifest
 		realizationSeeder := realizationrg.Int63()
 		eventSeeder := eventrg.Int63()
 		realizationRandomGeneratorByPlugin[idx] = rand.New(rand.NewSource(realizationSeeder))
 		eventRandomGeneratorByPlugin[idx] = rand.New(rand.NewSource(eventSeeder))
 	}
 	for i := 0; i < sj.TotalRealizations; i++ { //knowledge uncertainty loop
-		realizationIndexedSeeds := make([]IndexedSeed, len(plugins))
-		for idx, _ := range plugins {
+		realizationIndexedSeeds := make([]IndexedSeed, len(nodes))
+		for idx := range nodes {
 			realizationSeed := realizationRandomGeneratorByPlugin[idx].Int63()
 			realizationIndexedSeeds[idx] = IndexedSeed{Index: i, Seed: realizationSeed}
 		}
 		for j := 0; j < sj.EventsPerRealization; j++ { //natural variability loop
 			//ultimately need to send messages for each task in the event (defined by the dag)
 			//event randoms will spawn in unpredictable ways if we dont pre spawn them.
-			pluginEventIndexedSeeds := make([]IndexedSeed, len(plugins))
-			for idx, _ := range plugins {
+			pluginEventIndexedSeeds := make([]IndexedSeed, len(nodes))
+			for idx := range nodes {
 				pluginEventSeed := realizationRandomGeneratorByPlugin[idx].Int63()
 				pluginEventIndexedSeeds[idx] = IndexedSeed{Index: j, Seed: pluginEventSeed}
 			}
@@ -196,11 +197,10 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 }
 
 func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventIndexedSeedsByPlugin []IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch) {
-	payloads := make([]ModelPayload, 0)
 	key := ""
 	dependsOn := make([]*batch.JobDependency, 1)
 
-	for idx, _ := range sj.SelectedPlugins {
+	for idx := range sj.Dag.Nodes {
 		if key != "" {
 			//dependency in batch
 			dependsOn[0] = &batch.JobDependency{
@@ -229,7 +229,6 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			EventTimeWindow: sj.TimeWindow,
 		}
 		pluginPayloadStubs[idx].EventConfiguration = ec
-		payloads = append(payloads, pluginPayloadStubs[idx])
 		payload := pluginPayloadStubs[idx]
 		for idx, li := range payload.LinkedInputs {
 			li.Scheme = ec.OutputDestination.Scheme

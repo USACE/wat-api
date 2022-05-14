@@ -4,7 +4,6 @@ package wat
 type ModelConfiguration struct {
 	Name                        string         `json:"model_name" yaml:"model_name"`                               //model library guid?
 	ModelConfigurationResources []ResourceInfo `json:"model_configuration_paths" yaml:"model_configuration_paths"` //probably a uri?
-	ModelComputeResources       `json:"model_compute_resources" yaml:"model_compute_resources"`
 }
 type ModelComputeResources struct {
 	MinCpus       int       `json:"min_cpus" yaml:"min_cpus"`
@@ -17,9 +16,10 @@ type ModelComputeResources struct {
 
 //ModelManifest is defined by a set of files, provides inputs and ouptuts, is recognizable by a Model Library MCAT
 type ModelManifest struct {
-	ModelConfiguration `json:"model_configuration" yaml:"model_configuration"`
-	Inputs             []Input  `json:"inputs" yaml:"inputs"`
-	Outputs            []Output `json:"outputs" yaml:"outputs"`
+	ModelConfiguration    `json:"model_configuration" yaml:"model_configuration"`
+	ModelComputeResources `json:"model_compute_resources" yaml:"model_compute_resources"`
+	Inputs                []Input  `json:"inputs" yaml:"inputs"`
+	Outputs               []Output `json:"outputs" yaml:"outputs"`
 }
 type ModelLinks struct {
 	LinkedInputs     []ComputedOutput `json:"linked_inputs" yaml:"linked_inputs"`

@@ -53,18 +53,19 @@ func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch
 	//create a compute environments
 	for _, n := range sj.Dag.Nodes {
 		fmt.Println("creating compute environment for", n.ImageAndTag)
+		managed := "MANAGED"
+		if !n.Managed {
+			managed = "UNMANAGED"
+		}
 		computeEnvironment := &batch.CreateComputeEnvironmentInput{
 			ComputeEnvironmentName: &n.ImageAndTag,
 			ComputeResources: &batch.ComputeResource{
-				DesiredvCpus: aws.Int64(2),
-				Ec2KeyPair:   &n.ModelConfiguration.Name, //not sure we need it
-				InstanceRole: nil,                        //this probably needs to be preset
-				InstanceTypes: []*string{
-					aws.String("m4.large"),
-					aws.String("m4.micro"),
-				},
-				MaxvCpus: aws.Int64(128),
-				MinvCpus: aws.Int64(0),
+				DesiredvCpus:  n.DesiredCpus,
+				Ec2KeyPair:    &n.ModelConfiguration.Name, //not sure we need it
+				InstanceRole:  nil,                        //this probably needs to be preset
+				InstanceTypes: n.InstanceTypes,
+				MaxvCpus:      n.MaxCpus,
+				MinvCpus:      n.MinCpus,
 				SecurityGroupIds: []*string{
 					nil, //needs to be passed in somehow.
 				},
@@ -74,11 +75,11 @@ func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch
 				Tags: map[string]*string{
 					"nil": nil,
 				},
-				Type: aws.String("EC2"),
+				Type: n.Type,
 			},
 			ServiceRole: nil, //this is needed
 			State:       aws.String("ENABLED"),
-			Type:        aws.String("MANAGED"),
+			Type:        &managed,
 		}
 		output, err := awsBatch.CreateComputeEnvironment(computeEnvironment)
 		if err != nil {

@@ -6,9 +6,9 @@ type ModelConfiguration struct {
 	ModelConfigurationResources []ResourceInfo `json:"model_configuration_paths" yaml:"model_configuration_paths"` //probably a uri?
 }
 type ModelComputeResources struct {
-	MinCpus       int       `json:"min_cpus" yaml:"min_cpus"`
-	DesiredCpus   int       `json:"desired_cpus" yaml:"desired_cpus"`
-	MaxCpus       int       `json:"max_cpus" yaml:"max_cpus"`
+	MinCpus       *int64    `json:"min_cpus" yaml:"min_cpus"`
+	DesiredCpus   *int64    `json:"desired_cpus" yaml:"desired_cpus"`
+	MaxCpus       *int64    `json:"max_cpus" yaml:"max_cpus"`
 	InstanceTypes []*string `json:"instance_types" yaml:"instance_types"`
 	Type          *string   `json:"compute_environment_type" yaml:"compute_environment_type"`
 	Managed       bool      `json:"compute_environment_management_state" yaml:"compute_environment_management_state"`

@@ -11,13 +11,16 @@ func MockDag() wat.DirectedAcyclicGraph {
 	manifests := make([]wat.ModelManifest, 2)
 	t := "EC2"
 	i := "m2.micro"
+	var min int64 = 0
+	var desired int64 = 2
+	var max int64 = 128
 	instance_types := make([]*string, 1)
 	instance_types[0] = &i
 	manifests[0] = wat.ModelManifest{
 		ModelComputeResources: wat.ModelComputeResources{
-			MinCpus:       0,
-			DesiredCpus:   2,
-			MaxCpus:       128,
+			MinCpus:       &min,
+			DesiredCpus:   &desired,
+			MaxCpus:       &max,
 			InstanceTypes: instance_types,
 			Type:          &t,
 			Managed:       true,
@@ -26,9 +29,9 @@ func MockDag() wat.DirectedAcyclicGraph {
 	}
 	manifests[1] = wat.ModelManifest{
 		ModelComputeResources: wat.ModelComputeResources{
-			MinCpus:       0,
-			DesiredCpus:   2,
-			MaxCpus:       128,
+			MinCpus:       &min,
+			DesiredCpus:   &desired,
+			MaxCpus:       &max,
 			InstanceTypes: instance_types,
 			Type:          &t,
 			Managed:       true,

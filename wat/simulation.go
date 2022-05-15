@@ -17,11 +17,17 @@ import (
 //Job is defined by a manifest, provisions plugin resources, sends messages, and generates event payloads
 type Job interface {
 	//provisionresources
-	ProvisionResources() error
+	ProvisionResources() ([]ProvisionedResources, error)
 	//sendmessage
 	SendMessage(message string, sqs *sqs.SQS) error
 	//does this thing need to "run" or "compute"
 	GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client) error
+}
+type ProvisionedResources struct {
+	Plugin
+	ComputeEnvironmentARN *string
+	QueueARN              *string
+	JobARN                *string
 }
 
 //DeterministicJob implements the Job interface for a Deterministic Compute
@@ -48,10 +54,12 @@ type StochasticJob struct {
 	DeleteOutputAfterRealization bool         `json:"delete_after_realization"`
 }
 
-func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch) error {
+func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]ProvisionedResources, error) {
 	fmt.Println("provisioning resources...")
+	resources := make([]ProvisionedResources, len(sj.Dag.Nodes))
 	//create a compute environments
-	for _, n := range sj.Dag.Nodes {
+	for idx, n := range sj.Dag.Nodes {
+		resources[idx] = ProvisionedResources{}
 		fmt.Println("creating compute environment for", n.ImageAndTag)
 		managed := "MANAGED"
 		if !n.Managed {
@@ -85,13 +93,45 @@ func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch
 		if err != nil {
 			fmt.Println(err)
 		}
+		resources[idx].ComputeEnvironmentARN = output.ComputeEnvironmentArn
 		computeEnvironments := make([]*batch.ComputeEnvironmentOrder, 1)
 		var order int64 = 0
 		computeEnvironments[0] = &batch.ComputeEnvironmentOrder{
 			ComputeEnvironment: output.ComputeEnvironmentArn,
 			Order:              &order, //lower gets priority?
 		}
-		//should i be making the batch queues here?
+		//register the job
+		inputRegister := &batch.RegisterJobDefinitionInput{
+			ContainerProperties: &batch.ContainerProperties{
+				Command: []*string{
+					aws.String(".\\main -payload=" + "pathtopayload.yml"), //how do i pass the command line argument to the path dynamically?
+				},
+				Image: aws.String("busybox"),
+				ResourceRequirements: []*batch.ResourceRequirement{
+					{
+						Type:  aws.String("MEMORY"),
+						Value: aws.String("128"),
+					},
+					{
+						Type:  aws.String("VCPU"),
+						Value: aws.String("2"),
+					},
+				},
+			},
+			JobDefinitionName: aws.String("execute go container with payload"),
+			Tags: map[string]*string{
+				"Agency": aws.String("USACE"),
+				"User":   aws.String("JaneDoe"),
+			},
+			Type: aws.String("container"),
+		}
+		jobRegisterOutput, err := awsBatch.RegisterJobDefinition(inputRegister)
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+		resources[idx].JobARN = jobRegisterOutput.JobDefinitionArn
+		//create a batch queue
 		jobQueueName := fmt.Sprintf("%v_%v", n.ModelConfiguration.Name, n.Plugin.ImageAndTag)
 		batchQueueOutput, err := awsBatch.CreateJobQueue(&batch.CreateJobQueueInput{
 			ComputeEnvironmentOrder: computeEnvironments,
@@ -104,27 +144,9 @@ func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println(batchQueueOutput)
+		resources[idx].QueueARN = batchQueueOutput.JobQueueArn
 	}
-	messages := "messages"
-	miq := sqs.CreateQueueInput{
-		QueueName: &messages,
-	}
-	output, err := queue.CreateQueue(&miq)
-	if err != nil {
-		return err
-	}
-	fmt.Println(output.QueueUrl, "created")
-	events := "events"
-	eiq := sqs.CreateQueueInput{
-		QueueName: &events,
-	}
-	output, err = queue.CreateQueue(&eiq)
-	if err != nil {
-		return err
-	}
-	fmt.Println(output.QueueUrl, "created")
-	return nil
+	return resources, nil
 }
 func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS, queueName string) error {
 	fmt.Println("sending message: " + message)
@@ -149,7 +171,7 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS, queueName st
 	return nil
 }
 func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client, config config.WatConfig, awsBatch *batch.Batch) error {
-	err := sj.ProvisionResources(sqs, awsBatch)
+	resources, err := sj.ProvisionResources(awsBatch)
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
 	if err != nil {
@@ -180,13 +202,13 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 				pluginEventSeed := realizationRandomGeneratorByPlugin[idx].Int63()
 				pluginEventIndexedSeeds[idx] = IndexedSeed{Index: j, Seed: pluginEventSeed}
 			}
-			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache, awsBatch)
+			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache, awsBatch, resources)
 		}
 	}
 	return nil
 }
 
-func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventIndexedSeedsByPlugin []IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch) {
+func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventIndexedSeedsByPlugin []IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch, resources []ProvisionedResources) {
 	key := ""
 	dependsOn := make([]*batch.JobDependency, 1)
 
@@ -247,41 +269,13 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			panic(err)
 		}
 		//send a job to batch
-		inputRegister := &batch.RegisterJobDefinitionInput{ //this should probably happen once per model and plugin combination up in provision resources.
-			ContainerProperties: &batch.ContainerProperties{
-				Command: []*string{
-					aws.String(".\\main -payload=" + path),
-				},
-				Image: aws.String("busybox"),
-				ResourceRequirements: []*batch.ResourceRequirement{
-					{
-						Type:  aws.String("MEMORY"),
-						Value: aws.String("128"),
-					},
-					{
-						Type:  aws.String("VCPU"),
-						Value: aws.String("2"),
-					},
-				},
-			},
-			JobDefinitionName: aws.String("execute go container with payload"),
-			Tags: map[string]*string{
-				"Agency": aws.String("USACE"),
-				"User":   aws.String("JaneDoe"),
-			},
-			Type: aws.String("container"),
-		}
-		jobRegisterOutput, err := awsBatch.RegisterJobDefinition(inputRegister)
-		if err != nil {
-			fmt.Println(err)
-			panic(err)
-		}
+
 		proptags := true
 		batchOutput, err := awsBatch.SubmitJob(&batch.SubmitJobInput{
 			DependsOn:                  dependsOn,
-			JobDefinition:              jobRegisterOutput.JobDefinitionArn, //need to verify this.
+			JobDefinition:              resources[idx].JobARN, //need to verify this.
 			JobName:                    &key,
-			JobQueue:                   &key,      //i have no queue
+			JobQueue:                   resources[idx].QueueARN,
 			Parameters:                 nil,       //parameters?
 			PropagateTags:              &proptags, //i think.
 			RetryStrategy:              nil,

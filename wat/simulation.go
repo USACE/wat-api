@@ -59,7 +59,9 @@ func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]Provisioned
 	resources := make([]ProvisionedResources, len(sj.Dag.Nodes))
 	//create a compute environments
 	for idx, n := range sj.Dag.Nodes {
-		resources[idx] = ProvisionedResources{}
+		resources[idx] = ProvisionedResources{
+			Plugin: n.Plugin,
+		}
 		fmt.Println("creating compute environment for", n.ImageAndTag)
 		managed := "MANAGED"
 		if !n.Managed {
@@ -105,7 +107,7 @@ func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]Provisioned
 			ContainerProperties: &batch.ContainerProperties{
 				Command: []*string{
 					aws.String(".\\main -payload=" + "pathtopayload.yml"), //how do i pass the command line argument to the path dynamically?
-				},
+				}, //overridden with container overrides in the submitjobinput
 				Image: aws.String("busybox"),
 				ResourceRequirements: []*batch.ResourceRequirement{
 					{
@@ -128,7 +130,7 @@ func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]Provisioned
 		jobRegisterOutput, err := awsBatch.RegisterJobDefinition(inputRegister)
 		if err != nil {
 			fmt.Println(err)
-			panic(err)
+			//panic(err)
 		}
 		resources[idx].JobARN = jobRegisterOutput.JobDefinitionArn
 		//create a batch queue
@@ -269,10 +271,14 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			panic(err)
 		}
 		//send a job to batch
-
 		proptags := true
 		batchOutput, err := awsBatch.SubmitJob(&batch.SubmitJobInput{
-			DependsOn:                  dependsOn,
+			DependsOn: dependsOn,
+			ContainerOverrides: &batch.ContainerOverrides{
+				Command: []*string{
+					aws.String(".\\main -payload=" + path),
+				},
+			},
 			JobDefinition:              resources[idx].JobARN, //need to verify this.
 			JobName:                    &key,
 			JobQueue:                   resources[idx].QueueARN,

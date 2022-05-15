@@ -106,17 +106,6 @@ func (sj StochasticJob) ProvisionResources(queue *sqs.SQS, awsBatch *batch.Batch
 		}
 		fmt.Println(batchQueueOutput)
 	}
-	/*	for _, p := range sj.SelectedPlugins {
-			piq := sqs.CreateQueueInput{
-				QueueName: &p.Name,
-			}
-			output, err := queue.CreateQueue(&piq)
-			if err != nil {
-				return err
-			}
-			fmt.Println(output.QueueUrl, "created")
-		}
-	*/
 	messages := "messages"
 	miq := sqs.CreateQueueInput{
 		QueueName: &messages,
@@ -258,10 +247,39 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			panic(err)
 		}
 		//send a job to batch
+		inputRegister := &batch.RegisterJobDefinitionInput{ //this should probably happen once per model and plugin combination up in provision resources.
+			ContainerProperties: &batch.ContainerProperties{
+				Command: []*string{
+					aws.String(".\\main -payload=" + path),
+				},
+				Image: aws.String("busybox"),
+				ResourceRequirements: []*batch.ResourceRequirement{
+					{
+						Type:  aws.String("MEMORY"),
+						Value: aws.String("128"),
+					},
+					{
+						Type:  aws.String("VCPU"),
+						Value: aws.String("2"),
+					},
+				},
+			},
+			JobDefinitionName: aws.String("execute go container with payload"),
+			Tags: map[string]*string{
+				"Agency": aws.String("USACE"),
+				"User":   aws.String("JaneDoe"),
+			},
+			Type: aws.String("container"),
+		}
+		jobRegisterOutput, err := awsBatch.RegisterJobDefinition(inputRegister)
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
 		proptags := true
 		batchOutput, err := awsBatch.SubmitJob(&batch.SubmitJobInput{
 			DependsOn:                  dependsOn,
-			JobDefinition:              &payload.PluginImageAndTag, //need to verify this.
+			JobDefinition:              jobRegisterOutput.JobDefinitionArn, //need to verify this.
 			JobName:                    &key,
 			JobQueue:                   &key,      //i have no queue
 			Parameters:                 nil,       //parameters?

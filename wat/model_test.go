@@ -28,12 +28,12 @@ func TestModelManifestSeralization(t *testing.T) {
 		Inputs:             inputs,
 		Outputs:            outputs,
 	}
-	bytes, err := json.Marshal(mm)
+	bytes, err := yaml.Marshal(mm)
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}
-	t.Log(string(bytes))
+	fmt.Println(string(bytes))
 
 }
 func TestModelPayloadSeralization(t *testing.T) {

@@ -1,0 +1,56 @@
+plugin:
+  plugin_name: ras plugin
+  plugin_image_and_tag: containerrepository/containername:version
+model_configuration:
+  model_name: Muncie
+  model_configuration_paths:
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.b04
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.c04
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.g04.hdf
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.g04.tmp.hdf
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.p04
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.p04.tmp.hdf
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.prj
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.r04
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.u01
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.x04
+model_compute_resources:
+  min_cpus: 1
+  desired_cpus: 2
+  max_cpus: 4
+  instance_types:
+  - m2.micro
+  compute_environment_type: EC2
+  compute_environment_management_state: true
+inputs:
+  - name: inflow_boundary
+    paramter: flow
+    format: csv
+outputs:
+  - name: muncie.p04.hdf
+    parameter: ras results
+    format: hdf
+  - name: max_depth.terrain.tif
+    parameter: depth
+    format: tif
+

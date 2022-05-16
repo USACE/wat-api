@@ -112,7 +112,7 @@ func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]Provisioned
 				ResourceRequirements: []*batch.ResourceRequirement{
 					{
 						Type:  aws.String("MEMORY"),
-						Value: aws.String("128"),
+						Value: aws.String("2048"),
 					},
 					{
 						Type:  aws.String("VCPU"),
@@ -217,9 +217,12 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 	for idx := range sj.Dag.Nodes {
 		if key != "" {
 			//dependency in batch
-			dependsOn[0] = &batch.JobDependency{
-				JobId: &key,
+			if idx > 0 {
+				dependsOn[0] = &batch.JobDependency{
+					JobId: resources[idx-1].JobARN, //should confirm idx >0
+				}
 			}
+
 			//dependency through redis.
 			for {
 				value := cache.Get(key)

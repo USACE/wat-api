@@ -133,3 +133,169 @@ func TestModelPayloadSeralization(t *testing.T) {
 	}
 	t.Log(string(ybytes))
 }
+
+func TestRASModelManifestSeralization(t *testing.T) {
+
+	inputs := make([]Input, 1)
+	inputs[0] = Input{
+		Name:      "hsm1.csv",
+		Parameter: "flow",
+		Format:    ".csv",
+	}
+	outputs := make([]Output, 4)
+	outputs[0] = Output{
+		Name:      "muncie.p04.tmp.hdf",
+		Parameter: "ras p hdf file",
+		Format:    "hdf",
+	}
+	outputs[1] = Output{
+		Name:      "muncie.b04",
+		Parameter: "ras b file",
+		Format:    ".b**",
+	}
+	outputs[2] = Output{
+		Name:      "muncie.prj",
+		Parameter: "ras project file",
+		Format:    ".prj",
+	}
+	outputs[3] = Output{
+		Name:      "muncie.x04",
+		Parameter: "ras x file",
+		Format:    ".x**",
+	}
+	paths := make([]ResourceInfo, 4)
+	paths[0] = ResourceInfo{
+		Scheme:    "https",
+		Authority: "/model-library/Muncie-Test",
+		Fragment:  "muncie.p04.tmp.hdf",
+	}
+	paths[1] = ResourceInfo{
+		Scheme:    "https",
+		Authority: "/model-library/Muncie-Test",
+		Fragment:  "muncie.b04",
+	}
+	paths[2] = ResourceInfo{
+		Scheme:    "https",
+		Authority: "/model-library/Muncie-Test",
+		Fragment:  "muncie.prj",
+	}
+	paths[3] = ResourceInfo{
+		Scheme:    "https",
+		Authority: "/model-library/Muncie-Test",
+		Fragment:  "muncie.x04",
+	}
+	mc := ModelConfiguration{
+		Name:                        "Muncie",
+		ModelConfigurationResources: paths,
+	}
+	var mincpus int64 = 1
+	var maxcpus int64 = 4
+	var desiredcpus int64 = 2
+	computeType := "EC2"
+	instances := make([]*string, 1)
+	instance := "m2.micro"
+	instances[0] = &instance
+	computeResoures := ModelComputeResources{
+		MinCpus:       &mincpus,
+		MaxCpus:       &maxcpus,
+		DesiredCpus:   &desiredcpus,
+		Type:          &computeType,
+		InstanceTypes: instances,
+		Managed:       true,
+	}
+	mm := ModelManifest{
+		Plugin:                Plugin{Name: "ras-mutator", ImageAndTag: "williamlehman/ras-mutator:v0.0.1"},
+		ModelConfiguration:    mc,
+		ModelComputeResources: computeResoures,
+		Inputs:                inputs,
+		Outputs:               outputs,
+	}
+	bytes, err := yaml.Marshal(mm)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	fmt.Println(string(bytes))
+}
+func TestRASModelPayloadSeralization(t *testing.T) {
+	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
+	event := IndexedSeed{Index: 1, Seed: 5678}
+	realization := IndexedSeed{Index: 1, Seed: 1234}
+	eventConfiguration := EventConfiguration{
+		OutputDestination: ResourceInfo{
+			Scheme:    "http",
+			Authority: "/minio/runs/",
+		},
+		Realization:     realization,
+		Event:           event,
+		EventTimeWindow: tw,
+	}
+	//someone has to make data somewhere... probably needs to be computed output
+	prevModelOutput := make([]ComputedOutput, 1)
+	prevModelOutput[0] = ComputedOutput{
+		Name:      "hsm1.csv",
+		Parameter: "flow",
+		Format:    "csv",
+		ResourceInfo: ResourceInfo{
+			Scheme:    "http",
+			Authority: "/minio/runs/realization_0/event_0",
+			Fragment:  "hsm1.csv",
+		},
+	}
+	inputs := make([]Input, 1)
+	inputs[0] = Input{
+		Name:      "hsm1.csv",
+		Parameter: "flow",
+		Format:    ".csv",
+	}
+
+	outputs := make([]Output, 1)
+	outputs[0] = Output{
+		Name:      "output1",
+		Parameter: "time",
+		Format:    "hours",
+	}
+
+	paths := make([]ResourceInfo, 4)
+	paths[0] = ResourceInfo{
+		Scheme:    "https",
+		Authority: "/model-library/Muncie-Test",
+		Fragment:  "muncie.p04.tmp.hdf",
+	}
+	paths[1] = ResourceInfo{
+		Scheme:    "https",
+		Authority: "/model-library/Muncie-Test",
+		Fragment:  "muncie.b04",
+	}
+	paths[2] = ResourceInfo{
+		Scheme:    "https",
+		Authority: "/model-library/Muncie-Test",
+		Fragment:  "muncie.prj",
+	}
+	paths[3] = ResourceInfo{
+		Scheme:    "https",
+		Authority: "/model-library/Muncie-Test",
+		Fragment:  "muncie.x04",
+	}
+	mc := ModelConfiguration{
+		Name:                        "Muncie",
+		ModelConfigurationResources: paths,
+	}
+	ml := ModelLinks{
+		LinkedInputs:     prevModelOutput,
+		NecessaryOutputs: outputs,
+	}
+	mPayload := ModelPayload{
+		TargetPlugin:       "ras-mutator",
+		PluginImageAndTag:  "williamlehman/ras-mutator:v0.0.1",
+		ModelConfiguration: mc,
+		ModelLinks:         ml,
+		EventConfiguration: eventConfiguration,
+	}
+	bytes, err := yaml.Marshal(mPayload)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	fmt.Println(string(bytes))
+}

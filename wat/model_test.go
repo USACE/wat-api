@@ -238,7 +238,7 @@ func TestRASModelPayloadSeralization(t *testing.T) {
 		Format:    "csv",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "http",
-			Authority: "/minio/runs/realization_0/event_0",
+			Authority: "/minio/runs/realization_1/event_1",
 			Fragment:  "hsm1.csv",
 		},
 	}
@@ -249,11 +249,26 @@ func TestRASModelPayloadSeralization(t *testing.T) {
 		Format:    ".csv",
 	}
 
-	outputs := make([]Output, 1)
+	outputs := make([]Output, 4)
 	outputs[0] = Output{
-		Name:      "output1",
-		Parameter: "time",
-		Format:    "hours",
+		Name:      "muncie.p04.tmp.hdf",
+		Parameter: "ras p hdf file",
+		Format:    "hdf",
+	}
+	outputs[1] = Output{
+		Name:      "muncie.b04",
+		Parameter: "ras b file",
+		Format:    ".b**",
+	}
+	outputs[2] = Output{
+		Name:      "muncie.prj",
+		Parameter: "ras project file",
+		Format:    ".prj",
+	}
+	outputs[3] = Output{
+		Name:      "muncie.x04",
+		Parameter: "ras x file",
+		Format:    ".x**",
 	}
 
 	paths := make([]ResourceInfo, 4)

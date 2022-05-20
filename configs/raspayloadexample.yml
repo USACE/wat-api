@@ -22,12 +22,21 @@ model_links:
     format: csv
     resource_info:
       scheme: http
-      authority: /minio/runs/realization_0/event_0
+      authority: /minio/runs/realization_1/event_1
       fragment: hsm1.csv
   required_outputs:
-  - name: output1
-    parameter: time
-    format: hours
+  - name: muncie.p04.tmp.hdf
+    parameter: ras p hdf file
+    format: hdf
+  - name: muncie.b04
+    parameter: ras b file
+    format: .b**
+  - name: muncie.prj
+    parameter: ras project file
+    format: .prj
+  - name: muncie.x04
+    parameter: ras x file
+    format: .x**
 event_config:
   output_destination:
     scheme: http

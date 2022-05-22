@@ -1,0 +1,52 @@
+target_plugin: ras-mutator
+plugin_image_and_tag: williamlehman/ras-mutator:v0.0.1
+model_configuration:
+  model_name: Muncie
+  model_configuration_paths:
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.p04.tmp.hdf
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.b04
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.prj
+  - scheme: https
+    authority: /model-library/Muncie-Test
+    fragment: muncie.x04
+model_links:
+  linked_inputs:
+  - name: hsm1.csv
+    parameter: flow
+    format: csv
+    resource_info:
+      scheme: http
+      authority: /minio/runs/realization_1/event_1
+      fragment: hsm1.csv
+  required_outputs:
+  - name: muncie.p04.tmp.hdf
+    parameter: ras p hdf file
+    format: hdf
+  - name: muncie.b04
+    parameter: ras b file
+    format: .b**
+  - name: muncie.prj
+    parameter: ras project file
+    format: .prj
+  - name: muncie.x04
+    parameter: ras x file
+    format: .x**
+event_config:
+  output_destination:
+    scheme: http
+    authority: /minio/runs/
+  realization:
+    index: 1
+    seed: 1234
+  event:
+    index: 1
+    seed: 5678
+  time_window:
+    starttime: 2018-01-01T01:01:01.000000001Z
+    endtime: 2020-12-31T01:01:01.000000001Z

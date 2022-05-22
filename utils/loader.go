@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/batch"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/go-redis/redis"
 	"github.com/kelseyhightower/envconfig"
@@ -87,6 +88,27 @@ func (sl ServicesLoader) InitRedis() (*redis.Client, error) {
 		DB:       0,
 	})
 	return client, nil
+}
+func (sl ServicesLoader) InitBatch() (*batch.Batch, error) {
+	/*sess, err := session.NewSession(&aws.Config{
+		Credentials: credentials.NewStaticCredentialsFromCreds(credentials.Value{
+		   AccessKeyID:     accessKeyValue,
+		   SecretAccessKey: secret,
+		}),
+		Region: aws.String("us-east-1")},
+	 )*/
+	creds := credentials.NewStaticCredentials(
+		sl.config.AWS_ACCESS_KEY_ID,
+		sl.config.AWS_SECRET_ACCESS_KEY,
+		"",
+	)
+	awscfg := aws.NewConfig().WithRegion(sl.config.AWS_DEFAULT_REGION).WithCredentials(creds)
+	sess, err := session.NewSession(awscfg)
+	if err != nil {
+		return nil, err
+	}
+	batchClient := batch.New(sess)
+	return batchClient, nil
 }
 func LoadJsonPluginModelFromS3(filepath string, fs filestore.FileStore, pluginModel interface{}) error {
 	fmt.Println("reading:", filepath)

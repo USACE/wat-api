@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	handler "github.com/usace/wat-api/handlers"
+	"gopkg.in/yaml.v2"
 )
 
 func TestPostCompute(t *testing.T) {
@@ -32,7 +33,7 @@ func TestSerializeStochasticJob(t *testing.T) {
 		t.Fail()
 	}
 	sj := handler.MockStochasticJob(wHandler.Config())
-	byteblob, err := json.Marshal(sj)
+	byteblob, err := yaml.Marshal(sj)
 	if err != nil {
 		t.Fail()
 	}

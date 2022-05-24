@@ -1,5 +1,13 @@
 package wat
 
+import (
+	"fmt"
+	"io/ioutil"
+
+	"github.com/USACE/filestore"
+	"gopkg.in/yaml.v2"
+)
+
 //ModelConfiguration is a name and a path to a configuration
 type ModelConfiguration struct {
 	Name                        string         `json:"model_name" yaml:"model_name"`                               //model library guid?
@@ -34,4 +42,26 @@ type ModelPayload struct {
 	ModelConfiguration `json:"model_configuration" yaml:"model_configuration"`
 	ModelLinks         `json:"model_links" yaml:"model_links"`
 	EventConfiguration `json:"event_config" yaml:"event_config"`
+}
+
+// LoadModelPayload
+func LoadModelPayloadFromS3(payloadFile string, fs filestore.FileStore) (ModelPayload, error) {
+	var p ModelPayload
+	fmt.Println("reading payload:", payloadFile)
+	data, err := fs.GetObject(payloadFile)
+	if err != nil {
+		return p, err
+	}
+
+	body, err := ioutil.ReadAll(data)
+	if err != nil {
+		return p, err
+	}
+	//fmt.Println(string(body))
+	err = yaml.Unmarshal(body, &p)
+	if err != nil {
+		return p, err
+	}
+	//fmt.Println(p)
+	return p, nil
 }

@@ -103,6 +103,7 @@ func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]Provisioned
 			Order:              &order, //lower gets priority?
 		}
 		//register the job
+
 		inputRegister := &batch.RegisterJobDefinitionInput{
 			ContainerProperties: &batch.ContainerProperties{
 				Command: []*string{
@@ -116,7 +117,7 @@ func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]Provisioned
 					},
 					{
 						Type:  aws.String("VCPU"),
-						Value: aws.String("2"),
+						Value: aws.String("1"),
 					},
 				},
 			},

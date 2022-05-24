@@ -139,7 +139,7 @@ func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]Provisioned
 		batchQueueOutput, err := awsBatch.CreateJobQueue(&batch.CreateJobQueueInput{
 			ComputeEnvironmentOrder: computeEnvironments,
 			JobQueueName:            &jobQueueName,
-			Priority:                nil, //higher gets priority
+			Priority:                aws.Int64(1), //higher gets priority
 			Tags:                    nil,
 			SchedulingPolicyArn:     nil, //if not set FIFO
 			State:                   nil, //&batch.JQStatusValid,"VALID"

@@ -1,0 +1,39 @@
+target_plugin: ras-runner
+plugin_image_and_tag: williamlehman/ras-runner:v0.0.1
+model_configuration:
+  model_name: Muncie
+  model_configuration_paths:
+  - scheme: http
+    authority: /minio/runs/realization_1/event_1
+    fragment: muncie.p04.tmp.hdf
+  - scheme: http
+    authority: /minio/runs/realization_1/event_1
+    fragment: muncie.b04
+  - scheme: http
+    authority: /minio/runs/realization_1/event_1
+    fragment: muncie.prj
+  - scheme: http
+    authority: /minio/runs/realization_1/event_1
+    fragment: muncie.x04
+model_links:
+  linked_inputs: []
+  required_outputs:
+  - name: muncie.p04.hdf
+    parameter: ras results hdf file
+    format: .hdf
+  - name: muncie.log
+    parameter: ras log file
+    format: .log
+event_config:
+  output_destination:
+    scheme: http
+    authority: /minio/runs/realization_1/event_1
+  realization:
+    index: 1
+    seed: 1234
+  event:
+    index: 1
+    seed: 5678
+  time_window:
+    starttime: 2018-01-01T01:01:01.000000001Z
+    endtime: 2020-12-31T01:01:01.000000001Z

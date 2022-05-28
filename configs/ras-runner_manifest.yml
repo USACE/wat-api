@@ -3,19 +3,6 @@ plugin:
   plugin_image_and_tag: williamlehman/ras-runner:v0.0.1
 model_configuration:
   model_name: Muncie
-  model_configuration_paths:
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.p04.tmp.hdf
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.b04
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.prj
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.x04
 model_compute_resources:
   min_cpus: 1
   desired_cpus: 2
@@ -24,7 +11,19 @@ model_compute_resources:
   - m2.micro
   compute_environment_type: EC2
   compute_environment_management_state: true
-inputs: []
+inputs:
+- name: Temp Project HDF File
+  parameter: Project HDF File
+  format: .hdf
+- name: RAS B file
+  parameter: B file stuff
+  format: .b**
+- name: RAS Project File
+  parameter: Project Specification
+  format: .prj
+- name: RAS X File
+  parameter: X File stuff
+  format: .x**
 outputs:
 - name: muncie.p04.hdf
   parameter: ras results hdf file

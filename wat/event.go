@@ -20,7 +20,7 @@ func (ec EventConfiguration) ToInput() ComputedOutput {
 		ResourceInfo: ResourceInfo{
 			Scheme:    "https",
 			Authority: "needs to be replaced",
-			Fragment:  "EventConfiguration.yml",
+			Fragment:  "EventConfiguration.json",
 		},
 	}
 }

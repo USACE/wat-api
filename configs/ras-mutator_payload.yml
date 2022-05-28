@@ -1,20 +1,5 @@
-target_plugin: ras-mutator
-plugin_image_and_tag: williamlehman/ras-mutator:v0.0.1
 model_configuration:
   model_name: Muncie
-  model_configuration_paths:
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.p04.tmp.hdf
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.b04
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.prj
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.x04
 model_links:
   linked_inputs:
   - name: hsm1.csv
@@ -24,6 +9,41 @@ model_links:
       scheme: http
       authority: /minio/runs/realization_1/event_1
       fragment: hsm1.csv
+  - name: Temp Project HDF File
+    parameter: Project HDF File
+    format: .hdf
+    resource_info:
+      scheme: https
+      authority: /model-library/Muncie-Test
+      fragment: muncie.p04.tmp.hdf
+  - name: RAS B file
+    parameter: B file stuff
+    format: .b**
+    resource_info:
+      scheme: https
+      authority: /model-library/Muncie-Test
+      fragment: muncie.b04
+  - name: RAS Project File
+    parameter: Project Specification
+    format: .prj
+    resource_info:
+      scheme: https
+      authority: /model-library/Muncie-Test
+      fragment: muncie.prj
+  - name: RAS X File
+    parameter: X File stuff
+    format: .x**
+    resource_info:
+      scheme: https
+      authority: /model-library/Muncie-Test
+      fragment: muncie.x04
+  - name: Event Configuration
+    parameter: Event Specification
+    format: .json
+    resource_info:
+      scheme: http
+      authority: /minio/runs/realization_1/event_1
+      fragment: EventConfiguration.json
   required_outputs:
   - name: muncie.p04.tmp.hdf
     parameter: ras p hdf file
@@ -37,16 +57,3 @@ model_links:
   - name: muncie.x04
     parameter: ras x file
     format: .x**
-event_config:
-  output_destination:
-    scheme: http
-    authority: /minio/runs/realization_1/event_1
-  realization:
-    index: 1
-    seed: 1234
-  event:
-    index: 1
-    seed: 5678
-  time_window:
-    starttime: 2018-01-01T01:01:01.000000001Z
-    endtime: 2020-12-31T01:01:01.000000001Z

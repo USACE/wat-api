@@ -261,11 +261,31 @@ func TestHSMModelPayloadSeralization(t *testing.T) {
 }
 func TestRASMutatorModelManifestSeralization(t *testing.T) {
 
-	inputs := make([]Input, 1)
+	inputs := make([]Input, 5)
 	inputs[0] = Input{
 		Name:      "hsm1.csv",
 		Parameter: "flow",
 		Format:    ".csv",
+	}
+	inputs[1] = Input{
+		Name:      "muncie.p04.tmp.hdf",
+		Parameter: "ras p hdf file",
+		Format:    "hdf",
+	}
+	inputs[2] = Input{
+		Name:      "muncie.b04",
+		Parameter: "ras b file",
+		Format:    ".b**",
+	}
+	inputs[3] = Input{
+		Name:      "muncie.prj",
+		Parameter: "ras project file",
+		Format:    ".prj",
+	}
+	inputs[4] = Input{
+		Name:      "muncie.x04",
+		Parameter: "ras x file",
+		Format:    ".x**",
 	}
 	outputs := make([]Output, 4)
 	outputs[0] = Output{
@@ -287,27 +307,6 @@ func TestRASMutatorModelManifestSeralization(t *testing.T) {
 		Name:      "muncie.x04",
 		Parameter: "ras x file",
 		Format:    ".x**",
-	}
-	paths := make([]ResourceInfo, 4)
-	paths[0] = ResourceInfo{
-		Scheme:    "https",
-		Authority: "/model-library/Muncie-Test",
-		Fragment:  "muncie.p04.tmp.hdf",
-	}
-	paths[1] = ResourceInfo{
-		Scheme:    "https",
-		Authority: "/model-library/Muncie-Test",
-		Fragment:  "muncie.b04",
-	}
-	paths[2] = ResourceInfo{
-		Scheme:    "https",
-		Authority: "/model-library/Muncie-Test",
-		Fragment:  "muncie.prj",
-	}
-	paths[3] = ResourceInfo{
-		Scheme:    "https",
-		Authority: "/model-library/Muncie-Test",
-		Fragment:  "muncie.x04",
 	}
 	mc := ModelConfiguration{
 		Name: "Muncie",
@@ -355,7 +354,7 @@ func TestRASMutatorModelPayloadSeralization(t *testing.T) {
 		EventTimeWindow: tw,
 	}
 	//someone has to make data somewhere... probably needs to be computed output
-	prevModelOutput := make([]ComputedOutput, 1)
+	prevModelOutput := make([]ComputedOutput, 5)
 	prevModelOutput[0] = ComputedOutput{
 		Name:      "hsm1.csv",
 		Parameter: "flow",
@@ -366,35 +365,6 @@ func TestRASMutatorModelPayloadSeralization(t *testing.T) {
 			Fragment:  "hsm1.csv",
 		},
 	}
-	inputs := make([]Input, 1)
-	inputs[0] = Input{
-		Name:      "hsm1.csv",
-		Parameter: "flow",
-		Format:    ".csv",
-	}
-
-	outputs := make([]Output, 4)
-	outputs[0] = Output{
-		Name:      "muncie.p04.tmp.hdf",
-		Parameter: "ras p hdf file",
-		Format:    "hdf",
-	}
-	outputs[1] = Output{
-		Name:      "muncie.b04",
-		Parameter: "ras b file",
-		Format:    ".b**",
-	}
-	outputs[2] = Output{
-		Name:      "muncie.prj",
-		Parameter: "ras project file",
-		Format:    ".prj",
-	}
-	outputs[3] = Output{
-		Name:      "muncie.x04",
-		Parameter: "ras x file",
-		Format:    ".x**",
-	}
-
 	paths := make([]ResourceInfo, 4)
 	paths[0] = ResourceInfo{
 		Scheme:    "https",
@@ -415,6 +385,51 @@ func TestRASMutatorModelPayloadSeralization(t *testing.T) {
 		Scheme:    "https",
 		Authority: "/model-library/Muncie-Test",
 		Fragment:  "muncie.x04",
+	}
+	prevModelOutput[1] = ComputedOutput{
+		Name:         "Temp Project HDF File",
+		Parameter:    "Project HDF File",
+		Format:       ".hdf",
+		ResourceInfo: paths[0],
+	}
+	prevModelOutput[2] = ComputedOutput{
+		Name:         "RAS B file",
+		Parameter:    "B file stuff",
+		Format:       ".b**",
+		ResourceInfo: paths[1],
+	}
+	prevModelOutput[3] = ComputedOutput{
+		Name:         "RAS Project File",
+		Parameter:    "Project Specification",
+		Format:       ".prj",
+		ResourceInfo: paths[2],
+	}
+	prevModelOutput[4] = ComputedOutput{
+		Name:         "RAS X File",
+		Parameter:    "X File stuff",
+		Format:       ".x**",
+		ResourceInfo: paths[3],
+	}
+	outputs := make([]Output, 4)
+	outputs[0] = Output{
+		Name:      "muncie.p04.tmp.hdf",
+		Parameter: "ras p hdf file",
+		Format:    "hdf",
+	}
+	outputs[1] = Output{
+		Name:      "muncie.b04",
+		Parameter: "ras b file",
+		Format:    ".b**",
+	}
+	outputs[2] = Output{
+		Name:      "muncie.prj",
+		Parameter: "ras project file",
+		Format:    ".prj",
+	}
+	outputs[3] = Output{
+		Name:      "muncie.x04",
+		Parameter: "ras x file",
+		Format:    ".x**",
 	}
 	mc := ModelConfiguration{
 		Name: "Muncie",

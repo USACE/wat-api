@@ -3,19 +3,6 @@ plugin:
   plugin_image_and_tag: williamlehman/ras-mutator:v0.0.1
 model_configuration:
   model_name: Muncie
-  model_configuration_paths:
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.p04.tmp.hdf
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.b04
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.prj
-  - scheme: https
-    authority: /model-library/Muncie-Test
-    fragment: muncie.x04
 model_compute_resources:
   min_cpus: 1
   desired_cpus: 2
@@ -28,6 +15,18 @@ inputs:
 - name: hsm1.csv
   parameter: flow
   format: .csv
+- name: muncie.p04.tmp.hdf
+  parameter: ras p hdf file
+  format: hdf
+- name: muncie.b04
+  parameter: ras b file
+  format: .b**
+- name: muncie.prj
+  parameter: ras project file
+  format: .prj
+- name: muncie.x04
+  parameter: ras x file
+  format: .x**
 outputs:
 - name: muncie.p04.tmp.hdf
   parameter: ras p hdf file

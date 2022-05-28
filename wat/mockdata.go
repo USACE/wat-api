@@ -1,5 +1,7 @@
 package wat
 
+import "time"
+
 func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 	mconfig := ModelConfiguration{}
 	inputs := make([]ComputedOutput, 0)
@@ -98,4 +100,19 @@ func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 		},
 	}
 	return payload
+}
+func MockEventConfiguration() EventConfiguration {
+	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
+	event := IndexedSeed{Index: 1, Seed: 5678}
+	realization := IndexedSeed{Index: 1, Seed: 1234}
+	eventConfiguration := EventConfiguration{
+		OutputDestination: ResourceInfo{
+			Scheme:    "http",
+			Authority: "/minio/runs/realization_1/event_1",
+		},
+		Realization:     realization,
+		Event:           event,
+		EventTimeWindow: tw,
+	}
+	return eventConfiguration
 }

@@ -4,12 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"gopkg.in/yaml.v2"
 )
 
+func TestEventConfiguration(t *testing.T) {
+	eventConfiguration := MockEventConfiguration()
+	bytes, err := json.Marshal(eventConfiguration)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	fmt.Println(string(bytes))
+}
 func TestModelManifestSeralization(t *testing.T) {
 	inputs := make([]Input, 1)
 	inputs[0] = Input{
@@ -54,17 +62,7 @@ func TestModelManifestSeralization(t *testing.T) {
 
 }
 func TestModelPayloadSeralization(t *testing.T) {
-	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
-	event := IndexedSeed{Index: 1, Seed: 5678}
-	realization := IndexedSeed{Index: 1, Seed: 1234}
-	eventConfiguration := EventConfiguration{
-		OutputDestination: ResourceInfo{
-			Authority: "/testing/",
-		},
-		Realization:     realization,
-		Event:           event,
-		EventTimeWindow: tw,
-	}
+	eventConfiguration := MockEventConfiguration()
 	//someone has to make data somewhere... probably needs to be computed output
 	prevModelOutput := make([]ComputedOutput, 2)
 	prevModelOutput[0] = ComputedOutput{
@@ -210,18 +208,7 @@ func TestHSMModelManifestSeralization(t *testing.T) {
 	fmt.Println(string(bytes))
 }
 func TestHSMModelPayloadSeralization(t *testing.T) {
-	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
-	event := IndexedSeed{Index: 1, Seed: 5678}
-	realization := IndexedSeed{Index: 1, Seed: 1234}
-	eventConfiguration := EventConfiguration{
-		OutputDestination: ResourceInfo{
-			Scheme:    "http",
-			Authority: "/minio/runs/realization_1/event_1",
-		},
-		Realization:     realization,
-		Event:           event,
-		EventTimeWindow: tw,
-	}
+	eventConfiguration := MockEventConfiguration()
 	//someone has to make data somewhere... probably needs to be computed output
 	prevModelOutput := make([]ComputedOutput, 2)
 	prevModelOutput[0] = ComputedOutput{
@@ -341,18 +328,7 @@ func TestRASMutatorModelManifestSeralization(t *testing.T) {
 	fmt.Println(string(bytes))
 }
 func TestRASMutatorModelPayloadSeralization(t *testing.T) {
-	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
-	event := IndexedSeed{Index: 1, Seed: 5678}
-	realization := IndexedSeed{Index: 1, Seed: 1234}
-	eventConfiguration := EventConfiguration{
-		OutputDestination: ResourceInfo{
-			Scheme:    "http",
-			Authority: "/minio/runs/realization_1/event_1",
-		},
-		Realization:     realization,
-		Event:           event,
-		EventTimeWindow: tw,
-	}
+	eventConfiguration := MockEventConfiguration()
 	//someone has to make data somewhere... probably needs to be computed output
 	prevModelOutput := make([]ComputedOutput, 5)
 	prevModelOutput[0] = ComputedOutput{
@@ -516,18 +492,7 @@ func TestRASRunnerModelManifestSeralization(t *testing.T) {
 	fmt.Println(string(bytes))
 }
 func TestRASRunnerModelPayloadSeralization(t *testing.T) {
-	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
-	event := IndexedSeed{Index: 1, Seed: 5678}
-	realization := IndexedSeed{Index: 1, Seed: 1234}
-	eventConfiguration := EventConfiguration{
-		OutputDestination: ResourceInfo{
-			Scheme:    "http",
-			Authority: "/minio/runs/realization_1/event_1",
-		},
-		Realization:     realization,
-		Event:           event,
-		EventTimeWindow: tw,
-	}
+	eventConfiguration := MockEventConfiguration()
 	//someone has to make data somewhere... probably needs to be computed output
 	prevModelOutput := make([]ComputedOutput, 4)
 	outputs := make([]Output, 2)

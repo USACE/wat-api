@@ -2,25 +2,33 @@ package wat
 
 func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 	mconfig := ModelConfiguration{}
+	inputs := make([]ComputedOutput, 0)
 	switch plugin.Name {
 	case "fragilitycurveplugin":
-		paths := make([]ResourceInfo, 1)
-		paths[0] = ResourceInfo{
-			Scheme:    inputSource.Scheme,
-			Authority: inputSource.Authority,
-			Fragment:  "fc.json",
-		}
 		mconfig.Name = "levee_failures"
-		mconfig.ModelConfigurationResources = paths
+		mconfig.Alternative = "st. louis river"
+		inputs = append(inputs, ComputedOutput{
+			Name:      "Project File",
+			Parameter: "Project Specification",
+			Format:    ".json",
+			ResourceInfo: ResourceInfo{
+				Scheme:    inputSource.Scheme,
+				Authority: inputSource.Authority,
+				Fragment:  "fc.json",
+			},
+		})
 	case "hydrograph_scaler":
-		paths := make([]ResourceInfo, 1)
-		paths[0] = ResourceInfo{
-			Scheme:    inputSource.Scheme,
-			Authority: inputSource.Authority,
-			Fragment:  "hsm.json",
-		}
 		mconfig.Name = "hydrographs"
-		mconfig.ModelConfigurationResources = paths
+		inputs = append(inputs, ComputedOutput{
+			Name:      "Project File",
+			Parameter: "Project Specification",
+			Format:    ".json",
+			ResourceInfo: ResourceInfo{
+				Scheme:    inputSource.Scheme,
+				Authority: inputSource.Authority,
+				Fragment:  "hsm.json",
+			},
+		})
 		outputs := make([]Output, 3)
 		outputs[0] = Output{
 			Name:      "hsm1.csv",
@@ -38,31 +46,33 @@ func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 			Format:    "csv",
 		}
 		payload := ModelPayload{
-			TargetPlugin:       plugin.Name,
-			PluginImageAndTag:  plugin.ImageAndTag,
 			ModelConfiguration: mconfig,
 			ModelLinks: ModelLinks{
+				LinkedInputs:     inputs,
 				NecessaryOutputs: outputs,
 			},
 		}
 		return payload
 	case "hydrograph_stats":
-		paths := make([]ResourceInfo, 1)
-		paths[0] = ResourceInfo{
-			Scheme:    inputSource.Scheme,
-			Authority: inputSource.Authority,
-			Fragment:  "config_aws.yml",
-		}
 		mconfig.Name = "hydrograph_stats"
-		mconfig.ModelConfigurationResources = paths
-		inputs := make([]ComputedOutput, 1)
+		inputs = make([]ComputedOutput, 2)
 		inputs[0] = ComputedOutput{
+			Name:      "Project File",
+			Parameter: "Project Specification",
+			Format:    ".yml",
+			ResourceInfo: ResourceInfo{
+				Scheme:    inputSource.Scheme,
+				Authority: inputSource.Authority,
+				Fragment:  "config_aws.yml",
+			},
+		}
+		inputs[1] = ComputedOutput{
 			Name:      "hsm.csv",
 			Parameter: "flow",
 			Format:    "csv",
 			ResourceInfo: ResourceInfo{
-				Scheme:    "s3?",
-				Authority: "/data/realization_0/event_1",
+				Scheme:    inputSource.Scheme,
+				Authority: inputSource.Authority,
 				Fragment:  "hsm.csv",
 			},
 		}
@@ -73,8 +83,6 @@ func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 			Format:    "json",
 		}
 		payload := ModelPayload{
-			TargetPlugin:       plugin.Name,
-			PluginImageAndTag:  plugin.ImageAndTag,
 			ModelConfiguration: mconfig,
 			ModelLinks: ModelLinks{
 				LinkedInputs:     inputs,
@@ -84,9 +92,10 @@ func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 		return payload
 	}
 	payload := ModelPayload{
-		TargetPlugin:       plugin.Name,
-		PluginImageAndTag:  plugin.ImageAndTag,
 		ModelConfiguration: mconfig,
+		ModelLinks: ModelLinks{
+			LinkedInputs: inputs,
+		},
 	}
 	return payload
 }

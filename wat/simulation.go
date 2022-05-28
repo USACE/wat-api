@@ -246,7 +246,7 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			Event:           event,
 			EventTimeWindow: sj.TimeWindow,
 		}
-		pluginPayloadStubs[idx].EventConfiguration = ec
+		pluginPayloadStubs[idx].SetEventConfiguration(ec)
 		payload := pluginPayloadStubs[idx]
 		for idx, li := range payload.LinkedInputs {
 			li.Scheme = ec.OutputDestination.Scheme
@@ -258,7 +258,7 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			panic(err)
 		}
 		//put payload in s3
-		path := payload.EventConfiguration.OutputDestination.Authority + "/" + payload.Name + "_payload.yml"
+		path := payload.EventConfiguration().OutputDestination.Authority + "/" + payload.Name + "_payload.yml"
 		fmt.Println("putting object in fs:", path)
 		_, err = fs.PutObject(path, bytes)
 		if err != nil {
@@ -266,7 +266,7 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			panic(err)
 		}
 		//set status in redis
-		key = payload.PluginImageAndTag + "_" + payload.Name + "_R" + fmt.Sprint(payload.Realization.Index) + "_E" + fmt.Sprint(payload.Event.Index)
+		key = payload.Alternative + "_" + payload.Name + "_R" + fmt.Sprint(payload.EventConfiguration().Realization.Index) + "_E" + fmt.Sprint(payload.EventConfiguration().Event.Index)
 		cache.Set(key, "in progress", 0)
 		//send message to sqs
 		err = sj.SendMessage(string(bytes), sqs, "messages") //p.Name

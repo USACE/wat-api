@@ -12,6 +12,19 @@ type EventConfiguration struct {
 	EventTimeWindow   TimeWindow   `json:"time_window" yaml:"time_window"`
 }
 
+func (ec EventConfiguration) ToInput() ComputedOutput {
+	return ComputedOutput{
+		Name:      "Event Configuration",
+		Parameter: "Event Specification",
+		Format:    ".json",
+		ResourceInfo: ResourceInfo{
+			Scheme:    "https",
+			Authority: "needs to be replaced",
+			Fragment:  "EventConfiguration.yml",
+		},
+	}
+}
+
 type IndexedSeed struct {
 	Index int   `json:"index" yaml:"index"`
 	Seed  int64 `json:"seed" yaml:"seed"`

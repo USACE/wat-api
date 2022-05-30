@@ -1,10 +1,5 @@
 package wat
 
-type Task struct {
-	//Batch or Lambda
-	TaskType     string `json:"task_type" yaml:"task_type"`
-	ModelPayload `json:"model_payload" yaml:"model_payload"`
-}
 type EventConfiguration struct {
 	OutputDestination ResourceInfo `json:"output_destination" yaml:"output_destination"` //how do we manage ephemiral
 	Realization       IndexedSeed  `json:"realization" yaml:"realization"`               //knowledge uncertainty
@@ -12,11 +7,13 @@ type EventConfiguration struct {
 	EventTimeWindow   TimeWindow   `json:"time_window" yaml:"time_window"`
 }
 
-func (ec EventConfiguration) ToInput() ComputedOutput {
-	return ComputedOutput{
-		Name:      "Event Configuration",
-		Parameter: "Event Specification",
-		Format:    ".json",
+func (ec EventConfiguration) ToInput() LinkedDataDescription {
+	return LinkedDataDescription{
+		DataDescription: DataDescription{
+			Name:      "Event Configuration",
+			Parameter: "Event Specification",
+			Format:    ".json",
+		},
 		ResourceInfo: ResourceInfo{
 			Scheme:    "https",
 			Authority: "needs to be replaced",

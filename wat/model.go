@@ -30,12 +30,12 @@ type ModelManifest struct {
 	Plugin                `json:"plugin" yaml:"plugin"`
 	ModelConfiguration    `json:"model_configuration" yaml:"model_configuration"`
 	ModelComputeResources `json:"model_compute_resources" yaml:"model_compute_resources"`
-	Inputs                []Input  `json:"inputs" yaml:"inputs"`
-	Outputs               []Output `json:"outputs" yaml:"outputs"`
+	Inputs                []DataDescription `json:"inputs" yaml:"inputs"`
+	Outputs               []DataDescription `json:"outputs" yaml:"outputs"`
 }
 type ModelLinks struct {
-	LinkedInputs     []ComputedOutput `json:"linked_inputs" yaml:"linked_inputs"`
-	NecessaryOutputs []Output         `json:"required_outputs" yaml:"required_outputs"`
+	LinkedInputs     []LinkedDataDescription `json:"linked_inputs" yaml:"linked_inputs"`
+	NecessaryOutputs []LinkedDataDescription `json:"required_outputs" yaml:"required_outputs"`
 }
 type ModelPayload struct {
 	//Plugin       Plugin `json:"target_plugin" yaml:"target_plugin"`

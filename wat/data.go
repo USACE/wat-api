@@ -1,22 +1,14 @@
 package wat
 
 //Input define where a model needs input
-type Input struct {
+type DataDescription struct {
 	Name      string `json:"name" yaml:"name"`
 	Parameter string `json:"parameter" yaml:"parameter"`
 	Format    string `json:"format" yaml:"format"`
 }
 
-//Output defines where a model can produce output the format, parameter and the link information
-type Output struct {
-	Name      string `json:"name" yaml:"name"`
-	Parameter string `json:"parameter" yaml:"parameter"`
-	Format    string `json:"format" yaml:"format"`
-}
-type ComputedOutput struct {
-	Name         string `json:"name" yaml:"name"`
-	Parameter    string `json:"parameter" yaml:"parameter"`
-	Format       string `json:"format" yaml:"format"`
+type LinkedDataDescription struct {
+	DataDescription
 	ResourceInfo `json:"resource_info" yaml:"resource_info"`
 }
 type ResourceInfo struct {

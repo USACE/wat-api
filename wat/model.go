@@ -45,10 +45,30 @@ type ModelPayload struct {
 }
 
 func (mp ModelPayload) EventConfiguration() EventConfiguration {
-	return EventConfiguration{} //look through model links to find an input that is an event configuration...
+	for _, link := range mp.ModelLinks.LinkedInputs {
+		if link.Name == "Event Configuration" {
+			//go and load the link from s3 and provide it.
+			return mp.EventConfiguration()
+		}
+	}
+	return EventConfiguration{} //not a long term solution here.
 }
-func (mp *ModelPayload) SetEventConfiguration(ec EventConfiguration) {
+func (mp *ModelPayload) SetEventConfiguration(ec EventConfiguration, outputDestination string) {
 	//look through model links to find an input that is an event configuration... and set it!
+	index := 0
+	var tmpLink LinkedDataDescription
+	for idx, link := range mp.ModelLinks.LinkedInputs {
+		if link.Name == "Event Configuration" {
+			//go and load the link from s3 and provide it.
+			index = idx
+			tmpLink = link
+			break
+		}
+	}
+	tmpLink.ResourceInfo.Fragment = outputDestination + "/EventConfiguration.json"
+	//write event configuration to s3.
+
+	mp.ModelLinks.LinkedInputs[index] = tmpLink
 }
 
 // LoadModelPayload

@@ -246,7 +246,7 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			Event:           event,
 			EventTimeWindow: sj.TimeWindow,
 		}
-		pluginPayloadStubs[idx].SetEventConfiguration(ec)
+		pluginPayloadStubs[idx].SetEventConfiguration(ec, ec.OutputDestination.Authority)
 		payload := pluginPayloadStubs[idx]
 		for idx, li := range payload.LinkedInputs {
 			li.Scheme = ec.OutputDestination.Scheme

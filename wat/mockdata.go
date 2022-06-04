@@ -2,7 +2,7 @@ package wat
 
 import "time"
 
-func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
+func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, plugin Plugin) ModelPayload {
 	mconfig := ModelConfiguration{}
 	inputs := make([]LinkedDataDescription, 0)
 	switch plugin.Name {
@@ -128,6 +128,53 @@ func MockModelPayload(inputSource ResourceInfo, plugin Plugin) ModelPayload {
 			},
 		}
 		return payload
+	case "ras-mutator":
+		mconfig.Name = "Muncie"
+		inputs = make([]LinkedDataDescription, 2)
+		inputs[0] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "self",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  "models/Muncie/Muncie.p04.tmp.hdf", //this does not change
+			},
+		}
+		inputs[1] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "/Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/River: White  Reach: Muncie  RS: 15696.24",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "muncie-r1-e2-White-RS-5696.24.csv",
+			},
+		}
+		outputs := make([]LinkedDataDescription, 1)
+		outputs[0] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "self",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,
+				Fragment:  outputDestination.Fragment + "Muncie.p04.tmp.hdf",
+			},
+		}
+		payload := ModelPayload{
+			ModelConfiguration: mconfig,
+			ModelLinks: ModelLinks{
+				LinkedInputs:     inputs,
+				NecessaryOutputs: outputs,
+			},
+		}
+		return payload
+	case "ras-unsteady":
+
 	}
 	payload := ModelPayload{
 		ModelConfiguration: mconfig,

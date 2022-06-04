@@ -185,7 +185,7 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 	realizationRandomGeneratorByPlugin := make([]*rand.Rand, len(nodes))
 	eventRandomGeneratorByPlugin := make([]*rand.Rand, len(nodes))
 	for idx, n := range nodes {
-		pluginPayloadStubs[idx] = MockModelPayload(sj.Inputsource, n.Plugin) //TODO: remove once DAG is developed to create a payload from a linked manifest
+		pluginPayloadStubs[idx] = MockModelPayload(sj.Inputsource, sj.Outputdestination, n.Plugin) //TODO: remove once DAG is developed to create a payload from a linked manifest
 		realizationSeeder := realizationrg.Int63()
 		eventSeeder := eventrg.Int63()
 		realizationRandomGeneratorByPlugin[idx] = rand.New(rand.NewSource(realizationSeeder))

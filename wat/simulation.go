@@ -282,6 +282,7 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 				Command: []*string{
 					aws.String(".\\main -payload=" + path),
 				},
+				Environment: config.BatchEnvironmentVariables(),
 			},
 			JobDefinition:              resources[idx].JobARN, //need to verify this.
 			JobName:                    &key,

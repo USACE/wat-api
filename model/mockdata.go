@@ -1,4 +1,4 @@
-package wat
+package model
 
 import "time"
 

@@ -1,4 +1,4 @@
-package wat
+package model
 
 //Plugin can compute a model, can be used to get model manifests
 type Plugin struct {

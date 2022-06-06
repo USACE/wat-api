@@ -1,4 +1,4 @@
-package wat
+package model
 
 type DirectedAcyclicGraph struct {
 	Nodes []ModelManifest

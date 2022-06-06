@@ -4,11 +4,12 @@ import (
 	"time"
 
 	"github.com/usace/wat-api/config"
+	"github.com/usace/wat-api/model"
 	"github.com/usace/wat-api/wat"
 )
 
-func MockDag() wat.DirectedAcyclicGraph {
-	manifests := make([]wat.ModelManifest, 4)
+func MockDag() model.DirectedAcyclicGraph {
+	manifests := make([]model.ModelManifest, 4)
 	t := "EC2"
 	i := "m2.micro"
 	var min int64 = 0
@@ -16,8 +17,8 @@ func MockDag() wat.DirectedAcyclicGraph {
 	var max int64 = 128
 	instance_types := make([]*string, 1)
 	instance_types[0] = &i
-	manifests[0] = wat.ModelManifest{
-		ModelComputeResources: wat.ModelComputeResources{
+	manifests[0] = model.ModelManifest{
+		ModelComputeResources: model.ModelComputeResources{
 			MinCpus:       &min,
 			DesiredCpus:   &desired,
 			MaxCpus:       &max,
@@ -25,10 +26,10 @@ func MockDag() wat.DirectedAcyclicGraph {
 			Type:          &t,
 			Managed:       true,
 		},
-		Plugin: wat.Plugin{Name: "fragilitycurveplugin", ImageAndTag: "williamlehman/fragilitycurveplugin:v0.0.7"},
+		Plugin: model.Plugin{Name: "fragilitycurveplugin", ImageAndTag: "williamlehman/fragilitycurveplugin:v0.0.7"},
 	}
-	manifests[1] = wat.ModelManifest{
-		ModelComputeResources: wat.ModelComputeResources{
+	manifests[1] = model.ModelManifest{
+		ModelComputeResources: model.ModelComputeResources{
 			MinCpus:       &min,
 			DesiredCpus:   &desired,
 			MaxCpus:       &max,
@@ -36,10 +37,10 @@ func MockDag() wat.DirectedAcyclicGraph {
 			Type:          &t,
 			Managed:       true,
 		},
-		Plugin: wat.Plugin{Name: "hydrograph_scaler", ImageAndTag: "williamlehman/hydrographscaler:v0.0.7"},
+		Plugin: model.Plugin{Name: "hydrograph_scaler", ImageAndTag: "williamlehman/hydrographscaler:v0.0.7"},
 	}
-	manifests[2] = wat.ModelManifest{
-		ModelComputeResources: wat.ModelComputeResources{
+	manifests[2] = model.ModelManifest{
+		ModelComputeResources: model.ModelComputeResources{
 			MinCpus:       &min,
 			DesiredCpus:   &desired,
 			MaxCpus:       &max,
@@ -47,10 +48,10 @@ func MockDag() wat.DirectedAcyclicGraph {
 			Type:          &t,
 			Managed:       true,
 		},
-		Plugin: wat.Plugin{Name: "ras-mutator", ImageAndTag: "lawlerseth/ras-mutator:v0.1.0"},
+		Plugin: model.Plugin{Name: "ras-mutator", ImageAndTag: "lawlerseth/ras-mutator:v0.1.0"},
 	}
-	manifests[3] = wat.ModelManifest{
-		ModelComputeResources: wat.ModelComputeResources{
+	manifests[3] = model.ModelManifest{
+		ModelComputeResources: model.ModelComputeResources{
 			MinCpus:       &min,
 			DesiredCpus:   &desired,
 			MaxCpus:       &max,
@@ -58,14 +59,14 @@ func MockDag() wat.DirectedAcyclicGraph {
 			Type:          &t,
 			Managed:       true,
 		},
-		Plugin: wat.Plugin{Name: "ras-unsteady", ImageAndTag: "lawlerseth/ras-unsteady:v0.1.0"},
+		Plugin: model.Plugin{Name: "ras-unsteady", ImageAndTag: "lawlerseth/ras-unsteady:v0.1.0"},
 	}
-	return wat.DirectedAcyclicGraph{
+	return model.DirectedAcyclicGraph{
 		Nodes: manifests,
 	}
 }
 func MockStochasticJob(config config.WatConfig) wat.StochasticJob {
-	tw := wat.TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
+	tw := model.TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
 	dag := MockDag()
 	sj := wat.StochasticJob{
 		Dag:                    dag, //yo
@@ -74,12 +75,12 @@ func MockStochasticJob(config config.WatConfig) wat.StochasticJob {
 		EventsPerRealization:   10,
 		InitialRealizationSeed: 1234,
 		InitialEventSeed:       1234,
-		Outputdestination: wat.ResourceInfo{
+		Outputdestination: model.ResourceInfo{
 			Scheme:    "s3",
 			Authority: config.S3_BUCKET,
 			Fragment:  "/runs/",
 		},
-		Inputsource: wat.ResourceInfo{
+		Inputsource: model.ResourceInfo{
 			Scheme:    "s3",
 			Authority: config.S3_BUCKET,
 			Fragment:  "/data/",

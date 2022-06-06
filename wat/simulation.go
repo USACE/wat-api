@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/go-redis/redis"
 	"github.com/usace/wat-api/config"
+	"github.com/usace/wat-api/model"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,7 +25,7 @@ type Job interface {
 	GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client) error
 }
 type ProvisionedResources struct {
-	Plugin
+	model.Plugin
 	ComputeEnvironmentARN *string
 	QueueARN              *string
 	JobARN                *string
@@ -34,7 +35,7 @@ type ProvisionedResources struct {
 type DeterministicJob struct {
 	//simulation name?
 	//dag
-	TimeWindow `json:"timewindow"`
+	model.TimeWindow `json:"timewindow"`
 	//Outputdestination string                 `json:"outputdestination"`
 	//Inputsource       string                 `json:"inputsource"`
 }
@@ -43,113 +44,20 @@ type DeterministicJob struct {
 type StochasticJob struct {
 	//dag
 	//SelectedPlugins              []Plugin `json:"plugins"` //ultimately this needs to be part of the dag somehow
-	Dag                          DirectedAcyclicGraph `json:"directed_acyclic_graph"`
-	TimeWindow                   `json:"timewindow"`
-	TotalRealizations            int          `json:"totalrealizations"`
-	EventsPerRealization         int          `json:"eventsperrealization"`
-	InitialRealizationSeed       int64        `json:"initialrealizationseed"`
-	InitialEventSeed             int64        `json:"intitaleventseed"`
-	Outputdestination            ResourceInfo `json:"outputdestination"`
-	Inputsource                  ResourceInfo `json:"inputsource"`
-	DeleteOutputAfterRealization bool         `json:"delete_after_realization"`
+	Dag                          model.DirectedAcyclicGraph `json:"directed_acyclic_graph"`
+	model.TimeWindow             `json:"timewindow"`
+	TotalRealizations            int                `json:"totalrealizations"`
+	EventsPerRealization         int                `json:"eventsperrealization"`
+	InitialRealizationSeed       int64              `json:"initialrealizationseed"`
+	InitialEventSeed             int64              `json:"intitaleventseed"`
+	Outputdestination            model.ResourceInfo `json:"outputdestination"`
+	Inputsource                  model.ResourceInfo `json:"inputsource"`
+	DeleteOutputAfterRealization bool               `json:"delete_after_realization"`
 }
 
 func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]ProvisionedResources, error) {
 	fmt.Println("provisioning resources...")
-	resources := make([]ProvisionedResources, len(sj.Dag.Nodes))
-	//create a compute environments
-	for idx, n := range sj.Dag.Nodes {
-		resources[idx] = ProvisionedResources{
-			Plugin: n.Plugin,
-		}
-		fmt.Println("creating compute environment for", n.ImageAndTag)
-		managed := "MANAGED"
-		if !n.Managed {
-			managed = "UNMANAGED"
-		}
-		computeEnvironment := &batch.CreateComputeEnvironmentInput{
-			ComputeEnvironmentName: &n.ImageAndTag,
-			ComputeResources: &batch.ComputeResource{
-				DesiredvCpus:  n.DesiredCpus,
-				Ec2KeyPair:    &n.ModelConfiguration.Name, //not sure we need it
-				InstanceRole:  nil,                        //this probably needs to be preset
-				InstanceTypes: n.InstanceTypes,
-				MaxvCpus:      n.MaxCpus,
-				MinvCpus:      n.MinCpus,
-				SecurityGroupIds: []*string{
-					nil, //needs to be passed in somehow.
-				},
-				Subnets: []*string{
-					nil, //not sure i need this
-				},
-				Tags: map[string]*string{
-					"nil": nil,
-				},
-				Type: n.Type,
-			},
-			ServiceRole: nil, //this is needed
-			State:       aws.String("ENABLED"),
-			Type:        &managed,
-		}
-		output, err := awsBatch.CreateComputeEnvironment(computeEnvironment)
-		if err != nil {
-			fmt.Println(err)
-		}
-		resources[idx].ComputeEnvironmentARN = output.ComputeEnvironmentArn
-		computeEnvironments := make([]*batch.ComputeEnvironmentOrder, 1)
-		var order int64 = 0
-		computeEnvironments[0] = &batch.ComputeEnvironmentOrder{
-			ComputeEnvironment: output.ComputeEnvironmentArn,
-			Order:              &order, //lower gets priority?
-		}
-		//register the job
-
-		inputRegister := &batch.RegisterJobDefinitionInput{
-			ContainerProperties: &batch.ContainerProperties{
-				Command: []*string{
-					aws.String(".\\main -payload=" + "pathtopayload.yml"), //how do i pass the command line argument to the path dynamically?
-				}, //overridden with container overrides in the submitjobinput
-				Image: aws.String("busybox"),
-				ResourceRequirements: []*batch.ResourceRequirement{
-					{
-						Type:  aws.String("MEMORY"),
-						Value: aws.String("2048"),
-					},
-					{
-						Type:  aws.String("VCPU"),
-						Value: aws.String("1"),
-					},
-				},
-			},
-			JobDefinitionName: aws.String("execute go container with payload"),
-			Tags: map[string]*string{
-				"Agency": aws.String("USACE"),
-				"User":   aws.String("JaneDoe"),
-			},
-			Type: aws.String("container"),
-		}
-		jobRegisterOutput, err := awsBatch.RegisterJobDefinition(inputRegister)
-		if err != nil {
-			fmt.Println(err)
-			//panic(err)
-		}
-		resources[idx].JobARN = jobRegisterOutput.JobDefinitionArn
-		//create a batch queue
-		jobQueueName := fmt.Sprintf("%v_%v", n.ModelConfiguration.Name, n.Plugin.ImageAndTag)
-		batchQueueOutput, err := awsBatch.CreateJobQueue(&batch.CreateJobQueueInput{
-			ComputeEnvironmentOrder: computeEnvironments,
-			JobQueueName:            &jobQueueName,
-			Priority:                aws.Int64(1), //higher gets priority
-			Tags:                    nil,
-			SchedulingPolicyArn:     nil, //if not set FIFO
-			State:                   nil, //&batch.JQStatusValid,"VALID"
-		})
-		if err != nil {
-			fmt.Println(err)
-		}
-		resources[idx].QueueARN = batchQueueOutput.JobQueueArn
-	}
-	return resources, nil
+	return nil, nil
 }
 func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS, queueName string) error {
 	fmt.Println("sending message: " + message)
@@ -181,29 +89,29 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 		return err
 	}
 	nodes := sj.Dag.Nodes
-	pluginPayloadStubs := make([]ModelPayload, len(nodes))
+	pluginPayloadStubs := make([]model.ModelPayload, len(nodes))
 	realizationRandomGeneratorByPlugin := make([]*rand.Rand, len(nodes))
 	eventRandomGeneratorByPlugin := make([]*rand.Rand, len(nodes))
 	for idx, n := range nodes {
-		pluginPayloadStubs[idx] = MockModelPayload(sj.Inputsource, sj.Outputdestination, n.Plugin) //TODO: remove once DAG is developed to create a payload from a linked manifest
+		pluginPayloadStubs[idx] = model.MockModelPayload(sj.Inputsource, sj.Outputdestination, n.Plugin) //TODO: remove once DAG is developed to create a payload from a linked manifest
 		realizationSeeder := realizationrg.Int63()
 		eventSeeder := eventrg.Int63()
 		realizationRandomGeneratorByPlugin[idx] = rand.New(rand.NewSource(realizationSeeder))
 		eventRandomGeneratorByPlugin[idx] = rand.New(rand.NewSource(eventSeeder))
 	}
 	for i := 0; i < sj.TotalRealizations; i++ { //knowledge uncertainty loop
-		realizationIndexedSeeds := make([]IndexedSeed, len(nodes))
+		realizationIndexedSeeds := make([]model.IndexedSeed, len(nodes))
 		for idx := range nodes {
 			realizationSeed := realizationRandomGeneratorByPlugin[idx].Int63()
-			realizationIndexedSeeds[idx] = IndexedSeed{Index: i, Seed: realizationSeed}
+			realizationIndexedSeeds[idx] = model.IndexedSeed{Index: i, Seed: realizationSeed}
 		}
 		for j := 0; j < sj.EventsPerRealization; j++ { //natural variability loop
 			//ultimately need to send messages for each task in the event (defined by the dag)
 			//event randoms will spawn in unpredictable ways if we dont pre spawn them.
-			pluginEventIndexedSeeds := make([]IndexedSeed, len(nodes))
+			pluginEventIndexedSeeds := make([]model.IndexedSeed, len(nodes))
 			for idx := range nodes {
 				pluginEventSeed := realizationRandomGeneratorByPlugin[idx].Int63()
-				pluginEventIndexedSeeds[idx] = IndexedSeed{Index: j, Seed: pluginEventSeed}
+				pluginEventIndexedSeeds[idx] = model.IndexedSeed{Index: j, Seed: pluginEventSeed}
 			}
 			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache, awsBatch, resources)
 		}
@@ -211,7 +119,7 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 	return nil
 }
 
-func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []IndexedSeed, eventIndexedSeedsByPlugin []IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch, resources []ProvisionedResources) {
+func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []model.ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []model.IndexedSeed, eventIndexedSeedsByPlugin []model.IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch, resources []ProvisionedResources) {
 	key := ""
 	dependsOn := make([]*batch.JobDependency, 1)
 
@@ -223,7 +131,6 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 					JobId: resources[idx-1].JobARN, //should confirm idx >0
 				}
 			}
-
 			//dependency through redis.
 			for {
 				value := cache.Get(key)
@@ -237,8 +144,8 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 
 		}
 		event := eventIndexedSeedsByPlugin[idx]
-		ec := EventConfiguration{
-			OutputDestination: ResourceInfo{
+		ec := model.EventConfiguration{
+			OutputDestination: model.ResourceInfo{
 				Scheme:    sj.Outputdestination.Scheme, //config.S3_ENDPOINT + "/" + config.S3_BUCKET,
 				Authority: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination.Authority, "realization_", realizationIndexedSeeds[idx].Index, "event_", event.Index),
 			},

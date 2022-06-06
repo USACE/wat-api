@@ -10,6 +10,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo/v4"
 	"github.com/usace/wat-api/config"
+	"github.com/usace/wat-api/model"
 	"github.com/usace/wat-api/utils"
 	"github.com/usace/wat-api/wat"
 )
@@ -64,7 +65,7 @@ func (wh WatHandler) Config() config.WatConfig {
 }
 func (wh *WatHandler) Plugins(c echo.Context) error {
 	//ping the network to figure out what plugins are active?
-	plugins := make([]wat.Plugin, 0)
+	plugins := make([]model.Plugin, 0)
 	dag := MockDag()
 	for _, m := range dag.Nodes {
 		plugins = append(plugins, m.Plugin)

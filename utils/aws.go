@@ -1,0 +1,50 @@
+package utils
+
+import (
+	"fmt"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/batch"
+	"github.com/usace/wat-api/model"
+)
+
+type BatchClient struct {
+	Client *batch.Batch
+}
+
+func (awsBatch BatchClient) CreateBatchComputeEnvironment(manifest model.ModelManifest) (*string, error) {
+	fmt.Println("creating compute environment for", manifest.ImageAndTag)
+	managed := "MANAGED"
+	if !manifest.Managed {
+		managed = "UNMANAGED"
+	}
+	computeEnvironment := &batch.CreateComputeEnvironmentInput{
+		ComputeEnvironmentName: &manifest.ImageAndTag,
+		ComputeResources: &batch.ComputeResource{
+			DesiredvCpus:  manifest.DesiredCpus,
+			Ec2KeyPair:    &manifest.ModelConfiguration.Name, //not sure we need it
+			InstanceRole:  nil,                               //this probably needs to be preset
+			InstanceTypes: manifest.InstanceTypes,
+			MaxvCpus:      manifest.MaxCpus,
+			MinvCpus:      manifest.MinCpus,
+			SecurityGroupIds: []*string{
+				nil, //needs to be passed in somehow.
+			},
+			Subnets: []*string{
+				nil, //not sure i need this
+			},
+			Tags: map[string]*string{
+				"nil": nil,
+			},
+			Type: manifest.Type,
+		},
+		ServiceRole: nil, //this is needed
+		State:       aws.String("ENABLED"),
+		Type:        &managed,
+	}
+	output, err := awsBatch.Client.CreateComputeEnvironment(computeEnvironment)
+	if err != nil {
+		return nil, err
+	}
+	return output.ComputeEnvironmentArn, nil
+}

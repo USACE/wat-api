@@ -1,9 +1,9 @@
 package wat
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/USACE/filestore"
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,23 +12,18 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/model"
+	"github.com/usace/wat-api/utils"
 	"gopkg.in/yaml.v2"
 )
 
 //Job is defined by a manifest, provisions plugin resources, sends messages, and generates event payloads
 type Job interface {
 	//provisionresources
-	ProvisionResources() ([]ProvisionedResources, error)
+	ProvisionResources() ([]utils.ProvisionedResources, error)
 	//sendmessage
 	SendMessage(message string, sqs *sqs.SQS) error
 	//does this thing need to "run" or "compute"
 	GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client) error
-}
-type ProvisionedResources struct {
-	model.Plugin
-	ComputeEnvironmentARN *string
-	QueueARN              *string
-	JobARN                *string
 }
 
 //DeterministicJob implements the Job interface for a Deterministic Compute
@@ -55,7 +50,7 @@ type StochasticJob struct {
 	DeleteOutputAfterRealization bool               `json:"delete_after_realization"`
 }
 
-func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]ProvisionedResources, error) {
+func (sj StochasticJob) ProvisionResources(awsBatch *batch.Batch) ([]utils.ProvisionedResources, error) {
 	fmt.Println("provisioning resources...")
 	return nil, nil
 }
@@ -82,18 +77,18 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS, queueName st
 	return nil
 }
 func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client, config config.WatConfig, awsBatch *batch.Batch) error {
+	//provision resources
 	resources, err := sj.ProvisionResources(awsBatch)
+	//create random seed generators.
 	eventrg := rand.New(rand.NewSource(sj.InitialEventSeed))             //Natural Variability
 	realizationrg := rand.New(rand.NewSource(sj.InitialRealizationSeed)) //KnowledgeUncertianty
 	if err != nil {
 		return err
 	}
 	nodes := sj.Dag.Nodes
-	pluginPayloadStubs := make([]model.ModelPayload, len(nodes))
 	realizationRandomGeneratorByPlugin := make([]*rand.Rand, len(nodes))
 	eventRandomGeneratorByPlugin := make([]*rand.Rand, len(nodes))
-	for idx, n := range nodes {
-		pluginPayloadStubs[idx] = model.MockModelPayload(sj.Inputsource, sj.Outputdestination, n.Plugin) //TODO: remove once DAG is developed to create a payload from a linked manifest
+	for idx := range nodes {
 		realizationSeeder := realizationrg.Int63()
 		eventSeeder := eventrg.Int63()
 		realizationRandomGeneratorByPlugin[idx] = rand.New(rand.NewSource(realizationSeeder))
@@ -113,59 +108,44 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 				pluginEventSeed := realizationRandomGeneratorByPlugin[idx].Int63()
 				pluginEventIndexedSeeds[idx] = model.IndexedSeed{Index: j, Seed: pluginEventSeed}
 			}
-			go sj.ProcessDAG(config, j, pluginPayloadStubs, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache, awsBatch, resources)
+			go sj.ProcessDAG(config, i, j, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache, awsBatch, resources)
 		}
 	}
 	return nil
 }
 
-func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayloadStubs []model.ModelPayload, sqs *sqs.SQS, realizationIndexedSeeds []model.IndexedSeed, eventIndexedSeedsByPlugin []model.IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch, resources []ProvisionedResources) {
-	key := ""
-	dependsOn := make([]*batch.JobDependency, 1)
-
-	for idx := range sj.Dag.Nodes {
-		if key != "" {
-			//dependency in batch
-			if idx > 0 {
-				dependsOn[0] = &batch.JobDependency{
-					JobId: resources[idx-1].JobARN, //should confirm idx >0
-				}
-			}
-			//dependency through redis.
-			for {
-				value := cache.Get(key)
-				fmt.Println(value)
-				if value.Val() == "in progress" {
-					time.Sleep(time.Second * 2)
-				} else {
-					break
-				}
-			}
-
-		}
-		event := eventIndexedSeedsByPlugin[idx]
+func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, event int, sqs *sqs.SQS, realizationIndexedSeeds []model.IndexedSeed, eventIndexedSeedsByPlugin []model.IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch, resources []utils.ProvisionedResources) {
+	outputDestinationPath := fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination.Fragment, "realization_", realization, "event_", event)
+	for idx, n := range sj.Dag.Nodes {
 		ec := model.EventConfiguration{
 			OutputDestination: model.ResourceInfo{
-				Scheme:    sj.Outputdestination.Scheme, //config.S3_ENDPOINT + "/" + config.S3_BUCKET,
-				Authority: fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination.Authority, "realization_", realizationIndexedSeeds[idx].Index, "event_", event.Index),
+				Scheme:    sj.Outputdestination.Scheme,
+				Authority: sj.Outputdestination.Authority,
+				Fragment:  outputDestinationPath,
 			},
 			Realization:     realizationIndexedSeeds[idx],
-			Event:           event,
+			Event:           eventIndexedSeedsByPlugin[idx],
 			EventTimeWindow: sj.TimeWindow,
 		}
-		pluginPayloadStubs[idx].SetEventConfiguration(ec, ec.OutputDestination.Authority)
-		payload := pluginPayloadStubs[idx]
-		for idx, li := range payload.LinkedInputs {
-			li.Scheme = ec.OutputDestination.Scheme
-			li.Authority = ec.OutputDestination.Authority
-			payload.LinkedInputs[idx] = li
+		//write event configuration to s3.
+		ecbytes, err := json.Marshal(ec)
+		if err != nil {
+			panic(err)
 		}
+		path := outputDestinationPath + "/" + n.Plugin.Name + "_Event Configuration.json"
+		fmt.Println("putting object in fs:", path)
+		_, err = fs.PutObject(path, ecbytes)
+		if err != nil {
+			fmt.Println("failure to push event configuration to filestore:", err)
+			panic(err)
+		}
+		payload := model.MockModelPayload(sj.Inputsource, ec.OutputDestination, outputDestinationPath, n.Plugin)
 		bytes, err := yaml.Marshal(payload)
 		if err != nil {
 			panic(err)
 		}
 		//put payload in s3
-		path := payload.EventConfiguration().OutputDestination.Authority + "/" + payload.Name + "_payload.yml"
+		path = outputDestinationPath + "/" + payload.Name + "_payload.yml"
 		fmt.Println("putting object in fs:", path)
 		_, err = fs.PutObject(path, bytes)
 		if err != nil {
@@ -173,50 +153,14 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, j int, pluginPayload
 			panic(err)
 		}
 		//set status in redis
-		key = payload.Alternative + "_" + payload.Name + "_R" + fmt.Sprint(payload.EventConfiguration().Realization.Index) + "_E" + fmt.Sprint(payload.EventConfiguration().Event.Index)
-		cache.Set(key, "in progress", 0)
+		//key = payload.Alternative + "_" + payload.Name + "_R" + fmt.Sprint(payload.EventConfiguration().Realization.Index) + "_E" + fmt.Sprint(payload.EventConfiguration().Event.Index)
+		//cache.Set(key, "in progress", 0)
 		//send message to sqs
 		err = sj.SendMessage(string(bytes), sqs, "messages") //p.Name
 		if err != nil {
 			fmt.Println(err)
 			panic(err)
 		}
-		//send a job to batch
-		proptags := true
-		batchOutput, err := awsBatch.SubmitJob(&batch.SubmitJobInput{
-			DependsOn: dependsOn,
-			ContainerOverrides: &batch.ContainerOverrides{
-				Command: []*string{
-					aws.String(".\\main -payload=" + path),
-				},
-				Environment: config.BatchEnvironmentVariables(),
-			},
-			JobDefinition:              resources[idx].JobARN, //need to verify this.
-			JobName:                    &key,
-			JobQueue:                   resources[idx].QueueARN,
-			Parameters:                 nil,       //parameters?
-			PropagateTags:              &proptags, //i think.
-			RetryStrategy:              nil,
-			SchedulingPriorityOverride: nil,
-			ShareIdentifier:            nil,
-			Tags:                       nil,
-			Timeout:                    nil,
-		})
-		fmt.Println("batchoutput", batchOutput)
-		if err != nil {
-			fmt.Println("batcherror", err)
-			panic(err)
-		}
+		//submit job to batch.
 	}
-	for {
-		value := cache.Get(key)
-		fmt.Println(value)
-		if value.Val() == "in progress" {
-			time.Sleep(time.Second * 2)
-		} else {
-			fmt.Println("Realization", realizationIndexedSeeds[0].Index, "Event", eventIndexedSeedsByPlugin[0].Index, "Complete!")
-			break
-		}
-	}
-
 }

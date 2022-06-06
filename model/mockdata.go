@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, plugin Plugin) ModelPayload {
+func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, eventParts string, plugin Plugin) ModelPayload {
 	mconfig := ModelConfiguration{}
 	inputs := make([]LinkedDataDescription, 0)
 	switch plugin.Name {
@@ -32,44 +32,32 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			ResourceInfo: ResourceInfo{
 				Scheme:    inputSource.Scheme,
 				Authority: inputSource.Authority,
-				Fragment:  "hsm.json",
+				Fragment:  inputSource.Fragment + "hsm.json",
 			},
 		})
-		outputs := make([]LinkedDataDescription, 3)
+		inputs = append(inputs, LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:      "Event Configuration",
+				Parameter: "Event Configuration",
+				Format:    ".json",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    outputDestination.Scheme,
+				Authority: outputDestination.Authority,
+				Fragment:  outputDestination.Fragment + "/hydrograph_scaler_Event Configuration.json",
+			},
+		})
+		outputs := make([]LinkedDataDescription, 1)
 		outputs[0] = LinkedDataDescription{
 			DataDescription: DataDescription{
-				Name:      "hsm1.csv",
+				Name:      "muncie-r1-e2-White-RS-5696.24.csv",
 				Parameter: "flow",
 				Format:    "csv",
 			},
 			ResourceInfo: ResourceInfo{
-				Scheme:    inputSource.Scheme,
-				Authority: inputSource.Authority,
-				Fragment:  "hsm1.csv",
-			},
-		}
-		outputs[1] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:      "hsm2.csv",
-				Parameter: "flow",
-				Format:    "csv",
-			},
-			ResourceInfo: ResourceInfo{
-				Scheme:    inputSource.Scheme,
-				Authority: inputSource.Authority,
-				Fragment:  "hsm2.csv",
-			},
-		}
-		outputs[2] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:      "hsm3.csv",
-				Parameter: "flow",
-				Format:    "csv",
-			},
-			ResourceInfo: ResourceInfo{
-				Scheme:    inputSource.Scheme,
-				Authority: inputSource.Authority,
-				Fragment:  "hsm3.csv",
+				Scheme:    outputDestination.Scheme,
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/muncie-White-RS-5696.24.csv",
 			},
 		}
 		payload := ModelPayload{
@@ -129,7 +117,7 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		}
 		return payload
 	case "ras-mutator":
-		mconfig.Name = "Muncie"
+		mconfig.Name = "Muncie-Mutator"
 		inputs = make([]LinkedDataDescription, 2)
 		inputs[0] = LinkedDataDescription{
 			DataDescription: DataDescription{
@@ -139,7 +127,7 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: inputSource.Authority,
-				Fragment:  "models/Muncie/Muncie.p04.tmp.hdf", //this does not change
+				Fragment:  inputSource.Fragment + "models/Muncie/Muncie.p04.tmp.hdf", //this does not change
 			},
 		}
 		inputs[1] = LinkedDataDescription{
@@ -149,8 +137,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
-				Authority: inputSource.Authority,
-				Fragment:  inputSource.Fragment + "muncie-r1-e2-White-RS-5696.24.csv",
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/muncie-White-RS-5696.24.csv",
 			},
 		}
 		outputs := make([]LinkedDataDescription, 1)
@@ -162,7 +150,7 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: outputDestination.Authority,
-				Fragment:  outputDestination.Fragment + "Muncie.p04.tmp.hdf",
+				Fragment:  eventParts + "/Muncie.p04.tmp.hdf",
 			},
 		}
 		payload := ModelPayload{
@@ -174,7 +162,105 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		}
 		return payload
 	case "ras-unsteady":
-
+		mconfig.Name = "Muncie"
+		inputs = make([]LinkedDataDescription, 5)
+		inputs[0] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "Muncie.p04.tmp.hdf",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,        //this actually needs to change to output source authority.
+				Fragment:  eventParts + "/Muncie.p04.tmp.hdf", //provided by the mutator - changes each event
+			},
+		}
+		inputs[1] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "Muncie.b04",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "models/Muncie/Muncie.b04",
+			},
+		}
+		inputs[2] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "Muncie.prj",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "models/Muncie/Muncie.prj",
+			},
+		}
+		inputs[3] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "Muncie.x04",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "models/Muncie/Muncie.x04",
+			},
+		}
+		inputs[4] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "Muncie.c04",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "models/Muncie/Muncie.c04",
+			},
+		}
+		outputs := make([]LinkedDataDescription, 3)
+		outputs[0] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "Muncie.p04.hdf",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/Muncie.p04.hdf",
+			},
+		}
+		outputs[1] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "Muncie.log",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/Muncie.log",
+			},
+		}
+		outputs[2] = LinkedDataDescription{
+			DataDescription: DataDescription{
+				Name:   "Muncie.dss",
+				Format: "object",
+			},
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/Muncie.dss",
+			},
+		}
+		payload := ModelPayload{
+			ModelConfiguration: mconfig,
+			ModelLinks: ModelLinks{
+				LinkedInputs:     inputs,
+				NecessaryOutputs: outputs,
+			},
+		}
+		return payload
 	}
 	payload := ModelPayload{
 		ModelConfiguration: mconfig,

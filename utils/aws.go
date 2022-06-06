@@ -5,11 +5,18 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/batch"
+	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/model"
 )
 
 type BatchClient struct {
 	Client *batch.Batch
+}
+type ProvisionedResources struct {
+	model.Plugin
+	ComputeEnvironmentARN *string
+	QueueARN              *string
+	JobARN                *string
 }
 
 func (awsBatch BatchClient) CreateBatchComputeEnvironment(manifest model.ModelManifest) (*string, error) {
@@ -47,4 +54,32 @@ func (awsBatch BatchClient) CreateBatchComputeEnvironment(manifest model.ModelMa
 		return nil, err
 	}
 	return output.ComputeEnvironmentArn, nil
+}
+func (awsBatch BatchClient) SubmitWatTaskAsBatchJob(idx int, path string, dependsOn []*batch.JobDependency, resources []ProvisionedResources, config config.WatConfig) {
+	//send a job to batch
+	proptags := true
+	batchOutput, err := awsBatch.Client.SubmitJob(&batch.SubmitJobInput{
+		DependsOn: dependsOn,
+		ContainerOverrides: &batch.ContainerOverrides{
+			Command: []*string{
+				aws.String(".\\main -payload=" + path),
+			},
+			Environment: config.BatchEnvironmentVariables(),
+		},
+		JobDefinition:              resources[idx].JobARN, //need to verify this.
+		JobName:                    &path,
+		JobQueue:                   resources[idx].QueueARN,
+		Parameters:                 nil,       //parameters?
+		PropagateTags:              &proptags, //i think.
+		RetryStrategy:              nil,
+		SchedulingPriorityOverride: nil,
+		ShareIdentifier:            nil,
+		Tags:                       nil,
+		Timeout:                    nil,
+	})
+	fmt.Println("batchoutput", batchOutput)
+	if err != nil {
+		fmt.Println("batcherror", err)
+		panic(err)
+	}
 }

@@ -90,10 +90,10 @@ func TestBatchComputeEnvironmentGeneration(t *testing.T) {
 	}
 	dag := mockSimpleDag()
 	fmt.Println("provisioning resources...")
-	resources := make([]ProvisionedResources, len(dag.Nodes))
+	resources := make([]utils.ProvisionedResources, len(dag.Nodes))
 	//create a compute environments
 	for idx, n := range dag.Nodes {
-		resources[idx] = ProvisionedResources{
+		resources[idx] = utils.ProvisionedResources{
 			Plugin: n.Plugin,
 		}
 		fmt.Println("creating compute environment for", n.ImageAndTag)
@@ -141,10 +141,10 @@ func TestBatchComputeEnvironmentAndJobDefinitonAndJobQueue(t *testing.T) {
 	}
 	dag := mockSimpleDag()
 	fmt.Println("provisioning resources...")
-	resources := make([]ProvisionedResources, len(dag.Nodes))
+	resources := make([]utils.ProvisionedResources, len(dag.Nodes))
 	//create a compute environments
 	for idx, n := range dag.Nodes {
-		resources[idx] = ProvisionedResources{
+		resources[idx] = utils.ProvisionedResources{
 			Plugin: n.Plugin,
 		}
 		fmt.Println("creating compute environment for", n.ImageAndTag)

@@ -9,7 +9,7 @@ import (
 )
 
 func MockDag() model.DirectedAcyclicGraph {
-	manifests := make([]model.ModelManifest, 4)
+	manifests := make([]model.ModelManifest, 3)
 	t := "EC2"
 	i := "m2.micro"
 	var min int64 = 0
@@ -17,7 +17,7 @@ func MockDag() model.DirectedAcyclicGraph {
 	var max int64 = 128
 	instance_types := make([]*string, 1)
 	instance_types[0] = &i
-	manifests[0] = model.ModelManifest{
+	/*manifests[0] = model.ModelManifest{
 		ModelComputeResources: model.ModelComputeResources{
 			MinCpus:       &min,
 			DesiredCpus:   &desired,
@@ -27,8 +27,8 @@ func MockDag() model.DirectedAcyclicGraph {
 			Managed:       true,
 		},
 		Plugin: model.Plugin{Name: "fragilitycurveplugin", ImageAndTag: "williamlehman/fragilitycurveplugin:v0.0.7"},
-	}
-	manifests[1] = model.ModelManifest{
+	}*/
+	manifests[0] = model.ModelManifest{
 		ModelComputeResources: model.ModelComputeResources{
 			MinCpus:       &min,
 			DesiredCpus:   &desired,
@@ -39,7 +39,7 @@ func MockDag() model.DirectedAcyclicGraph {
 		},
 		Plugin: model.Plugin{Name: "hydrograph_scaler", ImageAndTag: "williamlehman/hydrographscaler:v0.0.7"},
 	}
-	manifests[2] = model.ModelManifest{
+	manifests[1] = model.ModelManifest{
 		ModelComputeResources: model.ModelComputeResources{
 			MinCpus:       &min,
 			DesiredCpus:   &desired,
@@ -50,7 +50,7 @@ func MockDag() model.DirectedAcyclicGraph {
 		},
 		Plugin: model.Plugin{Name: "ras-mutator", ImageAndTag: "lawlerseth/ras-mutator:v0.1.0"},
 	}
-	manifests[3] = model.ModelManifest{
+	manifests[2] = model.ModelManifest{
 		ModelComputeResources: model.ModelComputeResources{
 			MinCpus:       &min,
 			DesiredCpus:   &desired,
@@ -77,12 +77,12 @@ func MockStochasticJob(config config.WatConfig) wat.StochasticJob {
 		InitialEventSeed:       1234,
 		Outputdestination: model.ResourceInfo{
 			Scheme:    "s3",
-			Authority: config.S3_BUCKET,
+			Authority: "configs",
 			Fragment:  "/runs/",
 		},
 		Inputsource: model.ResourceInfo{
 			Scheme:    "s3",
-			Authority: config.S3_BUCKET,
+			Authority: "configs",
 			Fragment:  "/data/",
 		},
 		DeleteOutputAfterRealization: false,

@@ -10,6 +10,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo/v4"
 	"github.com/usace/wat-api/config"
+	"github.com/usace/wat-api/model"
 	"github.com/usace/wat-api/utils"
 	"github.com/usace/wat-api/wat"
 )
@@ -23,6 +24,36 @@ type WatHandler struct {
 	config        config.WatConfig
 }
 
+func CreateWatHandlerFromConfig(config config.WatConfig) (*WatHandler, error) {
+	wh := WatHandler{}
+	loader, err := utils.InitLoaderWithConfig("WAT_API", config)
+	if err != nil {
+		return &wh, err
+	}
+	store, err := loader.InitStore()
+	if err != nil {
+		return &wh, err
+	}
+	wh.store = store
+	sqs, err := loader.InitQueue()
+	if err != nil {
+		return &wh, err
+	}
+	wh.queue = sqs
+	cache, err := loader.InitRedis()
+	if err != nil {
+		return &wh, err
+	}
+	wh.cache = cache
+	awsBatch, err := loader.InitBatch()
+	if err != nil {
+		return &wh, err
+	}
+	wh.captainCrunch = awsBatch
+	wh.AppPort = loader.AppPort()
+	wh.config = loader.Config()
+	return &wh, nil
+}
 func CreateWatHandler() (*WatHandler, error) {
 	wh := WatHandler{}
 	loader, err := utils.InitLoader("WAT_API")
@@ -64,7 +95,7 @@ func (wh WatHandler) Config() config.WatConfig {
 }
 func (wh *WatHandler) Plugins(c echo.Context) error {
 	//ping the network to figure out what plugins are active?
-	plugins := make([]wat.Plugin, 0)
+	plugins := make([]model.Plugin, 0)
 	dag := MockDag()
 	for _, m := range dag.Nodes {
 		plugins = append(plugins, m.Plugin)

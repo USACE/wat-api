@@ -1,4 +1,4 @@
-package wat
+package model
 
 //Input define where a model needs input
 type DataDescription struct {

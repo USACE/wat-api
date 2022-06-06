@@ -8,11 +8,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/batch"
 	"github.com/usace/wat-api/config"
+	"github.com/usace/wat-api/model"
 	"github.com/usace/wat-api/utils"
 )
 
 func TestStochasticPayloadGeneration(t *testing.T) {
-	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
+	tw := model.TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
 	sj := StochasticJob{
 
 		TimeWindow:                   tw,
@@ -20,8 +21,8 @@ func TestStochasticPayloadGeneration(t *testing.T) {
 		EventsPerRealization:         10,
 		InitialRealizationSeed:       1234,
 		InitialEventSeed:             1234,
-		Outputdestination:            ResourceInfo{Authority: "testing"},
-		Inputsource:                  ResourceInfo{Authority: "testSettings.InputDataDir"},
+		Outputdestination:            model.ResourceInfo{Authority: "testing"},
+		Inputsource:                  model.ResourceInfo{Authority: "testSettings.InputDataDir"},
 		DeleteOutputAfterRealization: false,
 	}
 	config := config.WatConfig{}
@@ -31,8 +32,8 @@ func TestStochasticPayloadGeneration(t *testing.T) {
 		t.Fail()
 	}
 }
-func mockSimpleDag() DirectedAcyclicGraph {
-	manifests := make([]ModelManifest, 1)
+func mockSimpleDag() model.DirectedAcyclicGraph {
+	manifests := make([]model.ModelManifest, 1)
 	t := "EC2"
 	i := "m2.micro"
 	var min int64 = 0
@@ -40,8 +41,8 @@ func mockSimpleDag() DirectedAcyclicGraph {
 	var max int64 = 128
 	instance_types := make([]*string, 1)
 	instance_types[0] = &i
-	manifests[0] = ModelManifest{
-		ModelComputeResources: ModelComputeResources{
+	manifests[0] = model.ModelManifest{
+		ModelComputeResources: model.ModelComputeResources{
 			MinCpus:       &min,
 			DesiredCpus:   &desired,
 			MaxCpus:       &max,
@@ -49,9 +50,9 @@ func mockSimpleDag() DirectedAcyclicGraph {
 			Type:          &t,
 			Managed:       true,
 		},
-		Plugin: Plugin{Name: "fragilitycurveplugin", ImageAndTag: "williamlehman/fragilitycurveplugin:v0.0.7"},
+		Plugin: model.Plugin{Name: "fragilitycurveplugin", ImageAndTag: "williamlehman/fragilitycurveplugin:v0.0.7"},
 	}
-	return DirectedAcyclicGraph{
+	return model.DirectedAcyclicGraph{
 		Nodes: manifests,
 	}
 }
@@ -89,10 +90,10 @@ func TestBatchComputeEnvironmentGeneration(t *testing.T) {
 	}
 	dag := mockSimpleDag()
 	fmt.Println("provisioning resources...")
-	resources := make([]ProvisionedResources, len(dag.Nodes))
+	resources := make([]utils.ProvisionedResources, len(dag.Nodes))
 	//create a compute environments
 	for idx, n := range dag.Nodes {
-		resources[idx] = ProvisionedResources{
+		resources[idx] = utils.ProvisionedResources{
 			Plugin: n.Plugin,
 		}
 		fmt.Println("creating compute environment for", n.ImageAndTag)
@@ -140,10 +141,10 @@ func TestBatchComputeEnvironmentAndJobDefinitonAndJobQueue(t *testing.T) {
 	}
 	dag := mockSimpleDag()
 	fmt.Println("provisioning resources...")
-	resources := make([]ProvisionedResources, len(dag.Nodes))
+	resources := make([]utils.ProvisionedResources, len(dag.Nodes))
 	//create a compute environments
 	for idx, n := range dag.Nodes {
-		resources[idx] = ProvisionedResources{
+		resources[idx] = utils.ProvisionedResources{
 			Plugin: n.Plugin,
 		}
 		fmt.Println("creating compute environment for", n.ImageAndTag)

@@ -77,31 +77,31 @@ services:
       - 8001:8001
     volumes:
       - ./:/workspaces
-  lambda:
-    container_name: lambda
-    image: williamlehman/lambda-mock:v0.0.17
-    depends_on:
-      - sqs
-      - cache
-      - minio_init
-      - wat-api
-    environment:
-      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-      - AWS_DEFAULT_REGION=us-east-1
-      - AWS_S3_REGION=us-east-1
-      - AWS_S3_BUCKET=configs
-      - S3_MOCK=True
-      - S3_BUCKET=configs
-      - S3_ENDPOINT=host.docker.internal:9000
-      - S3_DISABLE_SSL=True
-      - S3_FORCE_PATH_STYLE=True
-      - REDIS_HOST=host.docker.internal
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
-      - SQS_ENDPOINT=http://host.docker.internal:9324
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+#  lambda:
+#    container_name: lambda
+#    image: williamlehman/lambda-mock:v0.0.17
+#    depends_on:
+#      - sqs
+#      - cache
+#      - minio_init
+#      - wat-api
+#    environment:
+#      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+#      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+#      - AWS_DEFAULT_REGION=us-east-1
+#      - AWS_S3_REGION=us-east-1
+#      - AWS_S3_BUCKET=configs
+#      - S3_MOCK=True
+#      - S3_BUCKET=configs
+#      - S3_ENDPOINT=host.docker.internal:9000
+#      - S3_DISABLE_SSL=True
+#      - S3_FORCE_PATH_STYLE=True
+#      - REDIS_HOST=host.docker.internal
+#      - REDIS_PORT=6379
+#      - REDIS_PASSWORD=eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+#      - SQS_ENDPOINT=http://host.docker.internal:9324
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
 volumes:
   cache:
     driver: local

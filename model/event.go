@@ -1,4 +1,4 @@
-package wat
+package model
 
 type EventConfiguration struct {
 	OutputDestination ResourceInfo `json:"output_destination" yaml:"output_destination"` //how do we manage ephemiral

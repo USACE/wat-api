@@ -1,0 +1,46 @@
+model_configuration:
+  model_name: Muncie
+model_links:
+  linked_inputs:
+  - name: Temp Project HDF File
+    parameter: Project HDF File
+    format: .hdf
+    resource_info:
+      scheme: http
+      authority: /minio/runs/realization_1/event_1
+      fragment: muncie.p04.tmp.hdf
+  - name: RAS B file
+    parameter: B file stuff
+    format: .b**
+    resource_info:
+      scheme: http
+      authority: /minio/runs/realization_1/event_1
+      fragment: muncie.b04
+  - name: RAS Project File
+    parameter: Project Specification
+    format: .prj
+    resource_info:
+      scheme: http
+      authority: /minio/runs/realization_1/event_1
+      fragment: muncie.prj
+  - name: RAS X File
+    parameter: X File stuff
+    format: .x**
+    resource_info:
+      scheme: http
+      authority: /minio/runs/realization_1/event_1
+      fragment: muncie.x04
+  - name: Event Configuration
+    parameter: Event Specification
+    format: .json
+    resource_info:
+      scheme: http
+      authority: /minio/runs/realization_1/event_1
+      fragment: EventConfiguration.json
+  required_outputs:
+  - name: muncie.p04.hdf
+    parameter: ras results hdf file
+    format: .hdf
+  - name: muncie.log
+    parameter: ras log file
+    format: .log

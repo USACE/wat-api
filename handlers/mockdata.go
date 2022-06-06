@@ -8,7 +8,7 @@ import (
 )
 
 func MockDag() wat.DirectedAcyclicGraph {
-	manifests := make([]wat.ModelManifest, 2)
+	manifests := make([]wat.ModelManifest, 4)
 	t := "EC2"
 	i := "m2.micro"
 	var min int64 = 0
@@ -38,6 +38,28 @@ func MockDag() wat.DirectedAcyclicGraph {
 		},
 		Plugin: wat.Plugin{Name: "hydrograph_scaler", ImageAndTag: "williamlehman/hydrographscaler:v0.0.7"},
 	}
+	manifests[2] = wat.ModelManifest{
+		ModelComputeResources: wat.ModelComputeResources{
+			MinCpus:       &min,
+			DesiredCpus:   &desired,
+			MaxCpus:       &max,
+			InstanceTypes: instance_types,
+			Type:          &t,
+			Managed:       true,
+		},
+		Plugin: wat.Plugin{Name: "ras-mutator", ImageAndTag: "lawlerseth/ras-mutator:v0.1.0"},
+	}
+	manifests[3] = wat.ModelManifest{
+		ModelComputeResources: wat.ModelComputeResources{
+			MinCpus:       &min,
+			DesiredCpus:   &desired,
+			MaxCpus:       &max,
+			InstanceTypes: instance_types,
+			Type:          &t,
+			Managed:       true,
+		},
+		Plugin: wat.Plugin{Name: "ras-unsteady", ImageAndTag: "lawlerseth/ras-unsteady:v0.1.0"},
+	}
 	return wat.DirectedAcyclicGraph{
 		Nodes: manifests,
 	}
@@ -53,12 +75,14 @@ func MockStochasticJob(config config.WatConfig) wat.StochasticJob {
 		InitialRealizationSeed: 1234,
 		InitialEventSeed:       1234,
 		Outputdestination: wat.ResourceInfo{
-			Scheme:    config.S3_ENDPOINT + "/" + config.S3_BUCKET,
-			Authority: "/runs/",
+			Scheme:    "s3",
+			Authority: config.S3_BUCKET,
+			Fragment:  "/runs/",
 		},
 		Inputsource: wat.ResourceInfo{
-			Scheme:    config.S3_ENDPOINT + "/" + config.S3_BUCKET,
-			Authority: "/data/",
+			Scheme:    "s3",
+			Authority: config.S3_BUCKET,
+			Fragment:  "/data/",
 		},
 		DeleteOutputAfterRealization: false,
 	}

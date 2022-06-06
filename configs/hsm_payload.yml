@@ -1,0 +1,22 @@
+model_configuration:
+  model_name: hsm
+model_links:
+  linked_inputs:
+  - name: Project File
+    parameter: Project Specification
+    format: .json
+    resource_info:
+      scheme: https
+      authority: /model-library/hsm-Test
+      fragment: hsm.json
+  - name: Event Configuration
+    parameter: Event Specification
+    format: .json
+    resource_info:
+      scheme: http
+      authority: /minio/runs/realization_1/event_1
+      fragment: EventConfiguration.json
+  required_outputs:
+  - name: hsm1.csv
+    parameter: flow
+    format: .csv

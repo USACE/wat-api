@@ -1,0 +1,27 @@
+plugin:
+  plugin_name: hydrographscaler
+  plugin_image_and_tag: williamlehman/hydrographscaler:v0.0.1
+model_configuration:
+  model_name: hsm
+model_compute_resources:
+  min_cpus: 1
+  desired_cpus: 2
+  max_cpus: 4
+  instance_types:
+  - m2.micro
+  compute_environment_type: EC2
+  compute_environment_management_state: true
+inputs:
+- name: Project File
+  parameter: Project Specification
+  format: .json
+outputs:
+- name: hsm1.csv
+  parameter: flow
+  format: .csv
+- name: hsm2.csv
+  parameter: flow
+  format: .csv
+- name: hsm3.csv
+  parameter: flow
+  format: .csv

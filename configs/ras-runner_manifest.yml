@@ -1,0 +1,33 @@
+plugin:
+  plugin_name: ras-runner
+  plugin_image_and_tag: williamlehman/ras-runner:v0.0.1
+model_configuration:
+  model_name: Muncie
+model_compute_resources:
+  min_cpus: 1
+  desired_cpus: 2
+  max_cpus: 4
+  instance_types:
+  - m2.micro
+  compute_environment_type: EC2
+  compute_environment_management_state: true
+inputs:
+- name: Temp Project HDF File
+  parameter: Project HDF File
+  format: .hdf
+- name: RAS B file
+  parameter: B file stuff
+  format: .b**
+- name: RAS Project File
+  parameter: Project Specification
+  format: .prj
+- name: RAS X File
+  parameter: X File stuff
+  format: .x**
+outputs:
+- name: muncie.p04.hdf
+  parameter: ras results hdf file
+  format: .hdf
+- name: muncie.log
+  parameter: ras log file
+  format: .log

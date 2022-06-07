@@ -61,111 +61,6 @@ func TestModelManifestSeralization(t *testing.T) {
 	fmt.Println(string(bytes))
 
 }
-func TestModelPayloadSeralization(t *testing.T) {
-	eventConfiguration := MockEventConfiguration()
-	//someone has to make data somewhere... probably needs to be computed output
-	prevModelOutput := make([]LinkedDataDescription, 2)
-	prevModelOutput[0] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "OutputFromAnotherModel1",
-			Parameter: "speed",
-			Format:    "mph",
-		},
-	}
-	prevModelOutput[1] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "OutputFromAnotherModel2",
-			Parameter: "distance",
-			Format:    "mi",
-		},
-	}
-	inputs := make([]DataDescription, 2)
-	inputs[0] = DataDescription{
-		Name:      "input1",
-		Parameter: "speed",
-		Format:    "mph",
-	}
-	inputs[1] = DataDescription{
-		Name:      "input2",
-		Parameter: "distance",
-		Format:    "mi",
-	}
-	outputs := make([]LinkedDataDescription, 1)
-	outputs[0] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "output1",
-			Parameter: "time",
-			Format:    "hours",
-		},
-		ResourceInfo: ResourceInfo{
-			Scheme:    "https",
-			Authority: "/temporary",
-			Fragment:  "output1.hours",
-		},
-	}
-	mc := ModelConfiguration{
-		Name: "TestModel",
-	}
-	linkedInputs := make([]LinkedDataDescription, 3)
-	linkedInputs[0] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "Project File",
-			Format:    "Project Specification",
-			Parameter: ".json",
-		},
-		ResourceInfo: ResourceInfo{
-			Scheme:    "s3://",
-			Authority: "testing/",
-			Fragment:  "hsm.json",
-		},
-	}
-	linkedInputs[1] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      inputs[0].Name,
-			Format:    inputs[0].Format,
-			Parameter: inputs[0].Parameter,
-		},
-		ResourceInfo: ResourceInfo{
-			Scheme:    "s3://",
-			Authority: "testing/",
-			Fragment:  inputs[0].Name,
-		},
-	}
-	linkedInputs[2] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      inputs[1].Name,
-			Format:    inputs[1].Format,
-			Parameter: inputs[1].Parameter,
-		},
-		ResourceInfo: ResourceInfo{
-			Scheme:    "s3://",
-			Authority: "testing/",
-			Fragment:  inputs[1].Name,
-		},
-	}
-	linkedInputs = append(linkedInputs, eventConfiguration.ToInput())
-	ml := ModelLinks{
-		LinkedInputs:     linkedInputs,
-		NecessaryOutputs: outputs,
-	}
-	mmanifest := ModelPayload{
-		ModelConfiguration: mc,
-		ModelLinks:         ml,
-	}
-	bytes, err := json.Marshal(mmanifest)
-	if err != nil {
-		fmt.Println(err)
-		t.Fail()
-	}
-	t.Log(string(bytes))
-	t.Log("\n")
-	ybytes, err := yaml.Marshal(mmanifest)
-	if err != nil {
-		fmt.Println(err)
-		t.Fail()
-	}
-	t.Log(string(ybytes))
-}
 
 func TestHSMModelManifestSeralization(t *testing.T) {
 
@@ -229,11 +124,9 @@ func TestHSMModelPayloadSeralization(t *testing.T) {
 	//someone has to make data somewhere... probably needs to be computed output
 	prevModelOutput := make([]LinkedDataDescription, 2)
 	prevModelOutput[0] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "Project File",
-			Parameter: "Project Specification",
-			Format:    ".json",
-		},
+		Name:      "Project File",
+		Parameter: "Project Specification",
+		Format:    ".json",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "https",
 			Authority: "/model-library/hsm-Test",
@@ -243,11 +136,9 @@ func TestHSMModelPayloadSeralization(t *testing.T) {
 	prevModelOutput[1] = eventConfiguration.ToInput()
 	outputs := make([]LinkedDataDescription, 1)
 	outputs[0] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "hsm1.csv",
-			Parameter: "flow",
-			Format:    ".csv",
-		},
+		Name:      "hsm1.csv",
+		Parameter: "flow",
+		Format:    ".csv",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "https",
 			Authority: "/minio/runs/realization_1/event_1",
@@ -358,11 +249,9 @@ func TestRASMutatorModelPayloadSeralization(t *testing.T) {
 	//someone has to make data somewhere... probably needs to be computed output
 	prevModelOutput := make([]LinkedDataDescription, 5)
 	prevModelOutput[0] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "hsm1.csv",
-			Parameter: "flow",
-			Format:    "csv",
-		},
+		Name:      "hsm1.csv",
+		Parameter: "flow",
+		Format:    "csv",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "http",
 			Authority: "/minio/runs/realization_1/event_1",
@@ -391,44 +280,34 @@ func TestRASMutatorModelPayloadSeralization(t *testing.T) {
 		Fragment:  "muncie.x04",
 	}
 	prevModelOutput[1] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "Temp Project HDF File",
-			Parameter: "Project HDF File",
-			Format:    ".hdf",
-		},
+		Name:         "Temp Project HDF File",
+		Parameter:    "Project HDF File",
+		Format:       ".hdf",
 		ResourceInfo: paths[0],
 	}
 	prevModelOutput[2] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "RAS B file",
-			Parameter: "B file stuff",
-			Format:    ".b**",
-		},
+		Name:         "RAS B file",
+		Parameter:    "B file stuff",
+		Format:       ".b**",
 		ResourceInfo: paths[1],
 	}
 	prevModelOutput[3] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "RAS Project File",
-			Parameter: "Project Specification",
-			Format:    ".prj",
-		},
+		Name:         "RAS Project File",
+		Parameter:    "Project Specification",
+		Format:       ".prj",
 		ResourceInfo: paths[2],
 	}
 	prevModelOutput[4] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "RAS X File",
-			Parameter: "X File stuff",
-			Format:    ".x**",
-		},
+		Name:         "RAS X File",
+		Parameter:    "X File stuff",
+		Format:       ".x**",
 		ResourceInfo: paths[3],
 	}
 	outputs := make([]LinkedDataDescription, 4)
 	outputs[0] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "muncie.p04.tmp.hdf",
-			Parameter: "ras p hdf file",
-			Format:    "hdf",
-		},
+		Name:      "muncie.p04.tmp.hdf",
+		Parameter: "ras p hdf file",
+		Format:    "hdf",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "http",
 			Authority: "/minio/runs/realization_1/event_1",
@@ -436,11 +315,9 @@ func TestRASMutatorModelPayloadSeralization(t *testing.T) {
 		},
 	}
 	outputs[1] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "muncie.b04",
-			Parameter: "ras b file",
-			Format:    ".b**",
-		},
+		Name:      "muncie.b04",
+		Parameter: "ras b file",
+		Format:    ".b**",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "http",
 			Authority: "/minio/runs/realization_1/event_1",
@@ -448,11 +325,9 @@ func TestRASMutatorModelPayloadSeralization(t *testing.T) {
 		},
 	}
 	outputs[2] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "muncie.prj",
-			Parameter: "ras project file",
-			Format:    ".prj",
-		},
+		Name:      "muncie.prj",
+		Parameter: "ras project file",
+		Format:    ".prj",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "http",
 			Authority: "/minio/runs/realization_1/event_1",
@@ -460,11 +335,9 @@ func TestRASMutatorModelPayloadSeralization(t *testing.T) {
 		},
 	}
 	outputs[3] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "muncie.x04",
-			Parameter: "ras x file",
-			Format:    ".x**",
-		},
+		Name:      "muncie.x04",
+		Parameter: "ras x file",
+		Format:    ".x**",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "http",
 			Authority: "/minio/runs/realization_1/event_1",
@@ -561,11 +434,9 @@ func TestRASRunnerModelPayloadSeralization(t *testing.T) {
 	prevModelOutput := make([]LinkedDataDescription, 4)
 	outputs := make([]LinkedDataDescription, 2)
 	outputs[0] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "muncie.p04.hdf",
-			Parameter: "ras results hdf file",
-			Format:    ".hdf",
-		},
+		Name:      "muncie.p04.hdf",
+		Parameter: "ras results hdf file",
+		Format:    ".hdf",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "https",
 			Authority: "/minio/runs/realization_1/event_1/",
@@ -573,11 +444,9 @@ func TestRASRunnerModelPayloadSeralization(t *testing.T) {
 		},
 	}
 	outputs[1] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "muncie.log",
-			Parameter: "ras log file",
-			Format:    ".log",
-		},
+		Name:      "muncie.log",
+		Parameter: "ras log file",
+		Format:    ".log",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "https",
 			Authority: "/minio/runs/realization_1/event_1",
@@ -606,35 +475,27 @@ func TestRASRunnerModelPayloadSeralization(t *testing.T) {
 		Fragment:  "muncie.x04",
 	}
 	prevModelOutput[0] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "Temp Project HDF File",
-			Parameter: "Project HDF File",
-			Format:    ".hdf",
-		},
+		Name:         "Temp Project HDF File",
+		Parameter:    "Project HDF File",
+		Format:       ".hdf",
 		ResourceInfo: paths[0],
 	}
 	prevModelOutput[1] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "RAS B file",
-			Parameter: "B file stuff",
-			Format:    ".b**",
-		},
+		Name:         "RAS B file",
+		Parameter:    "B file stuff",
+		Format:       ".b**",
 		ResourceInfo: paths[1],
 	}
 	prevModelOutput[2] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "RAS Project File",
-			Parameter: "Project Specification",
-			Format:    ".prj",
-		},
+		Name:         "RAS Project File",
+		Parameter:    "Project Specification",
+		Format:       ".prj",
 		ResourceInfo: paths[2],
 	}
 	prevModelOutput[3] = LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "RAS X File",
-			Parameter: "X File stuff",
-			Format:    ".x**",
-		},
+		Name:         "RAS X File",
+		Parameter:    "X File stuff",
+		Format:       ".x**",
 		ResourceInfo: paths[3],
 	}
 	mc := ModelConfiguration{

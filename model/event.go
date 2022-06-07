@@ -9,11 +9,9 @@ type EventConfiguration struct {
 
 func (ec EventConfiguration) ToInput() LinkedDataDescription {
 	return LinkedDataDescription{
-		DataDescription: DataDescription{
-			Name:      "Event Configuration",
-			Parameter: "Event Specification",
-			Format:    ".json",
-		},
+		Name:      "Event Configuration",
+		Parameter: "Event Specification",
+		Format:    ".json",
 		ResourceInfo: ResourceInfo{
 			Scheme:    "https",
 			Authority: "needs to be replaced",

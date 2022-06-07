@@ -10,11 +10,9 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		mconfig.Name = "levee_failures"
 		mconfig.Alternative = "st. louis river"
 		inputs = append(inputs, LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:      "Project File",
-				Parameter: "Project Specification",
-				Format:    ".json",
-			},
+			Name:      "Project File",
+			Parameter: "Project Specification",
+			Format:    ".json",
 			ResourceInfo: ResourceInfo{
 				Scheme:    inputSource.Scheme,
 				Authority: inputSource.Authority,
@@ -24,11 +22,9 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 	case "hydrograph_scaler":
 		mconfig.Name = "hydrographs"
 		inputs = append(inputs, LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:      "Project File",
-				Parameter: "Project Specification",
-				Format:    ".json",
-			},
+			Name:      "Project File",
+			Parameter: "Project Specification",
+			Format:    ".json",
 			ResourceInfo: ResourceInfo{
 				Scheme:    inputSource.Scheme,
 				Authority: inputSource.Authority,
@@ -36,11 +32,9 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		})
 		inputs = append(inputs, LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:      "Event Configuration",
-				Parameter: "Event Configuration",
-				Format:    ".json",
-			},
+			Name:      "Event Configuration",
+			Parameter: "Event Configuration",
+			Format:    ".json",
 			ResourceInfo: ResourceInfo{
 				Scheme:    outputDestination.Scheme,
 				Authority: outputDestination.Authority,
@@ -49,11 +43,9 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		})
 		outputs := make([]LinkedDataDescription, 1)
 		outputs[0] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:      "muncie-White-RS-5696.24.csv",
-				Parameter: "flow",
-				Format:    "csv",
-			},
+			Name:      "muncie-White-RS-5696.24.csv",
+			Parameter: "flow",
+			Format:    "csv",
 			ResourceInfo: ResourceInfo{
 				Scheme:    outputDestination.Scheme,
 				Authority: outputDestination.Authority,
@@ -72,11 +64,9 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		mconfig.Name = "hydrograph_stats"
 		inputs = make([]LinkedDataDescription, 2)
 		inputs[0] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:      "Project File",
-				Parameter: "Project Specification",
-				Format:    ".yml",
-			},
+			Name:      "Project File",
+			Parameter: "Project Specification",
+			Format:    ".yml",
 			ResourceInfo: ResourceInfo{
 				Scheme:    inputSource.Scheme,
 				Authority: inputSource.Authority,
@@ -84,11 +74,9 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		}
 		inputs[1] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:      "hsm.csv",
-				Parameter: "flow",
-				Format:    "csv",
-			},
+			Name:      "hsm.csv",
+			Parameter: "flow",
+			Format:    "csv",
 			ResourceInfo: ResourceInfo{
 				Scheme:    inputSource.Scheme,
 				Authority: inputSource.Authority,
@@ -97,11 +85,9 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		}
 		outputs := make([]LinkedDataDescription, 1)
 		outputs[0] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:      "results-wat.json",
-				Parameter: "scalar",
-				Format:    "json",
-			},
+			Name:      "results-wat.json",
+			Parameter: "scalar",
+			Format:    "json",
 			ResourceInfo: ResourceInfo{
 				Scheme:    inputSource.Scheme,
 				Authority: inputSource.Authority,
@@ -117,13 +103,11 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		}
 		return payload
 	case "ras-mutator":
-		mconfig.Name = "Muncie-Mutator"
+		mconfig.Name = "Muncie"
 		inputs = make([]LinkedDataDescription, 2)
 		inputs[0] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "self",
-				Format: "object",
-			},
+			Name:   "self",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: inputSource.Authority,
@@ -131,10 +115,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		}
 		inputs[1] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "/Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/River: White  Reach: Muncie  RS: 15696.24",
-				Format: "object",
-			},
+			Name:   "/Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/River: White  Reach: Muncie  RS: 15696.24",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: outputDestination.Authority,
@@ -143,10 +125,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		}
 		outputs := make([]LinkedDataDescription, 1)
 		outputs[0] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "self",
-				Format: "object",
-			},
+			Name:   "self",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: outputDestination.Authority,
@@ -165,10 +145,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		mconfig.Name = "Muncie"
 		inputs = make([]LinkedDataDescription, 5)
 		inputs[0] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "Muncie.p04.tmp.hdf",
-				Format: "object",
-			},
+			Name:   "Muncie.p04.tmp.hdf",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: outputDestination.Authority,        //this actually needs to change to output source authority.
@@ -176,10 +154,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		}
 		inputs[1] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "Muncie.b04",
-				Format: "object",
-			},
+			Name:   "Muncie.b04",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: inputSource.Authority,
@@ -187,10 +163,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		}
 		inputs[2] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "Muncie.prj",
-				Format: "object",
-			},
+			Name:   "Muncie.prj",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: inputSource.Authority,
@@ -198,10 +172,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		}
 		inputs[3] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "Muncie.x04",
-				Format: "object",
-			},
+			Name:   "Muncie.x04",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: inputSource.Authority,
@@ -209,10 +181,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		}
 		inputs[4] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "Muncie.c04",
-				Format: "object",
-			},
+			Name:   "Muncie.c04",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: inputSource.Authority,
@@ -221,10 +191,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		}
 		outputs := make([]LinkedDataDescription, 3)
 		outputs[0] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "Muncie.p04.hdf",
-				Format: "object",
-			},
+			Name:   "Muncie.p04.hdf",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: outputDestination.Authority,
@@ -232,10 +200,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		}
 		outputs[1] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "Muncie.log",
-				Format: "object",
-			},
+			Name:   "Muncie.log",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: outputDestination.Authority,
@@ -243,10 +209,8 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		}
 		outputs[2] = LinkedDataDescription{
-			DataDescription: DataDescription{
-				Name:   "Muncie.dss",
-				Format: "object",
-			},
+			Name:   "Muncie.dss",
+			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",
 				Authority: outputDestination.Authority,

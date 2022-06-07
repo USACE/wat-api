@@ -10,7 +10,9 @@ type DataDescription struct {
 }
 
 type LinkedDataDescription struct {
-	DataDescription
+	Name         string `json:"name" yaml:"name"`
+	Parameter    string `json:"parameter,omitempty" yaml:"parameter,omitempty"`
+	Format       string `json:"format" yaml:"format"`
 	ResourceInfo `json:"resource_info" yaml:"resource_info"`
 }
 type ResourceInfo struct {

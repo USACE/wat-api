@@ -145,7 +145,7 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, eve
 			panic(err)
 		}
 		//put payload in s3
-		path = outputDestinationPath + "/" + payload.Name + "_payload.yml"
+		path = outputDestinationPath + "/" + n.Plugin.Name + "_payload.yml"
 		fmt.Println("putting object in fs:", path)
 		_, err = fs.PutObject(path, bytes)
 		if err != nil {

@@ -50,7 +50,7 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 		outputs := make([]LinkedDataDescription, 1)
 		outputs[0] = LinkedDataDescription{
 			DataDescription: DataDescription{
-				Name:      "muncie-r1-e2-White-RS-5696.24.csv",
+				Name:      "muncie-White-RS-5696.24.csv",
 				Parameter: "flow",
 				Format:    "csv",
 			},

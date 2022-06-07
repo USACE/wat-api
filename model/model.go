@@ -8,6 +8,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type PayloadMessage struct {
+	Plugin
+	PayloadPath string `json:"payload" yaml:"payload"`
+}
+
 //ModelConfiguration is a model name and an optional model alternative
 type ModelConfiguration struct {
 	Name        string `json:"model_name" yaml:"model_name"`

@@ -156,11 +156,22 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, eve
 		//key = payload.Alternative + "_" + payload.Name + "_R" + fmt.Sprint(payload.EventConfiguration().Realization.Index) + "_E" + fmt.Sprint(payload.EventConfiguration().Event.Index)
 		//cache.Set(key, "in progress", 0)
 		//send message to sqs
-		err = sj.SendMessage(string(bytes), sqs, "messages") //p.Name
-		if err != nil {
-			fmt.Println(err)
-			panic(err)
+		if n.Plugin.Name == "hydrograph_scaler" {
+			mess := model.PayloadMessage{
+				Plugin:      n.Plugin,
+				PayloadPath: path,
+			}
+			byt, err := yaml.Marshal(mess)
+			if err != nil {
+				panic(err)
+			}
+			err = sj.SendMessage(string(byt), sqs, "messages") //p.Name
+			if err != nil {
+				fmt.Println(err)
+				panic(err)
+			}
 		}
+
 		//submit job to batch.
 	}
 }

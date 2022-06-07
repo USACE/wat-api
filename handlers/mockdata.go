@@ -37,7 +37,7 @@ func MockDag() model.DirectedAcyclicGraph {
 			Type:          &t,
 			Managed:       true,
 		},
-		Plugin: model.Plugin{Name: "hydrograph_scaler", ImageAndTag: "williamlehman/hydrographscaler:v0.0.7"},
+		Plugin: model.Plugin{Name: "hydrograph_scaler", ImageAndTag: "williamlehman/hydrographscaler:v0.0.8"},
 	}
 	manifests[1] = model.ModelManifest{
 		ModelComputeResources: model.ModelComputeResources{

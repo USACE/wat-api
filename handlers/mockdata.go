@@ -39,7 +39,7 @@ func MockDag() model.DirectedAcyclicGraph {
 		},
 		Plugin: model.Plugin{
 			Name:            "hydrograph_scaler",
-			ImageAndTag:     "williamlehman/hydrographscaler:v0.0.10",
+			ImageAndTag:     "williamlehman/hydrographscaler:v0.0.11",
 			CommandLineArgs: []string{"./main", "-payload"},
 		},
 	}

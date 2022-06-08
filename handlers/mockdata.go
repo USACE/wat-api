@@ -37,7 +37,11 @@ func MockDag() model.DirectedAcyclicGraph {
 			Type:          &t,
 			Managed:       true,
 		},
-		Plugin: model.Plugin{Name: "hydrograph_scaler", ImageAndTag: "williamlehman/hydrographscaler:v0.0.8"},
+		Plugin: model.Plugin{
+			Name:            "hydrograph_scaler",
+			ImageAndTag:     "williamlehman/hydrographscaler:v0.0.10",
+			CommandLineArgs: []string{"./main", "-payload"},
+		},
 	}
 	manifests[1] = model.ModelManifest{
 		ModelComputeResources: model.ModelComputeResources{
@@ -48,7 +52,11 @@ func MockDag() model.DirectedAcyclicGraph {
 			Type:          &t,
 			Managed:       true,
 		},
-		Plugin: model.Plugin{Name: "ras-mutator", ImageAndTag: "lawlerseth/ras-mutator:v0.1.0"},
+		Plugin: model.Plugin{
+			Name:            "ras-mutator",
+			ImageAndTag:     "lawlerseth/ras-mutator:v0.1.1",
+			CommandLineArgs: []string{"./h5rasedit", "wat", "-m", "host.docker.internal:9000", "-f"},
+		},
 	}
 	manifests[2] = model.ModelManifest{
 		ModelComputeResources: model.ModelComputeResources{
@@ -59,7 +67,11 @@ func MockDag() model.DirectedAcyclicGraph {
 			Type:          &t,
 			Managed:       true,
 		},
-		Plugin: model.Plugin{Name: "ras-unsteady", ImageAndTag: "lawlerseth/ras-unsteady:v0.1.0"},
+		Plugin: model.Plugin{
+			Name:            "ras-unsteady",
+			ImageAndTag:     "lawlerseth/ras-unsteady:v0.1.0",
+			CommandLineArgs: []string{"./watrun", "-payload"},
+		},
 	}
 	return model.DirectedAcyclicGraph{
 		Nodes: manifests,
@@ -72,17 +84,17 @@ func MockStochasticJob(config config.WatConfig) wat.StochasticJob {
 		Dag:                    dag, //yo
 		TimeWindow:             tw,
 		TotalRealizations:      2,
-		EventsPerRealization:   10,
+		EventsPerRealization:   1,
 		InitialRealizationSeed: 1234,
 		InitialEventSeed:       1234,
 		Outputdestination: model.ResourceInfo{
 			Scheme:    "s3",
-			Authority: "configs",
+			Authority: "cloud-wat-dev",
 			Fragment:  "/runs/",
 		},
 		Inputsource: model.ResourceInfo{
 			Scheme:    "s3",
-			Authority: "configs",
+			Authority: "cloud-wat-dev",
 			Fragment:  "/data/",
 		},
 		DeleteOutputAfterRealization: false,

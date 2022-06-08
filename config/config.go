@@ -14,6 +14,8 @@ type WatConfig struct {
 	AWS_SECRET_ACCESS_KEY string
 	AWS_DEFAULT_REGION    string
 	AWS_S3_REGION         string
+	AWS_REGION            string
+	AWS_BUCKET            string
 	S3_MOCK               bool
 	S3_BUCKET             string
 	S3_ENDPOINT           string
@@ -26,22 +28,24 @@ type WatConfig struct {
 }
 
 func (wc WatConfig) EnvironmentVariables() []string {
-	ret := make([]string, 15)
+	ret := make([]string, 17)
 	ret[0] = "APP_PORT=" + wc.APP_PORT
 	ret[1] = fmt.Sprintf("SKIP_JWT=%v", wc.SKIP_JWT)
 	ret[2] = "AWS_ACCESS_KEY_ID=" + wc.AWS_ACCESS_KEY_ID
 	ret[3] = "AWS_SECRET_ACCESS_KEY=" + wc.AWS_SECRET_ACCESS_KEY
 	ret[4] = "AWS_DEFAULT_REGION=" + wc.AWS_DEFAULT_REGION
 	ret[5] = "AWS_S3_REGION=" + wc.AWS_S3_REGION
-	ret[6] = fmt.Sprintf("S3_MOCK=%v", wc.S3_MOCK)
-	ret[7] = "S3_BUCKET=" + wc.S3_BUCKET
-	ret[8] = "S3_ENDPOINT=" + wc.S3_ENDPOINT
-	ret[9] = fmt.Sprintf("S3_DISABLE_SSL=%v", wc.S3_DISABLE_SSL)
-	ret[10] = fmt.Sprintf("S3_FORCE_PATH_STYLE=%v", wc.S3_FORCE_PATH_STYLE)
-	ret[11] = "REDIS_HOST=" + wc.REDIS_HOST
-	ret[12] = "REDIS_PORT=" + wc.REDIS_PORT
-	ret[13] = "REDIS_PASSWORD=" + wc.REDIS_PASSWORD
-	ret[14] = "SQS_ENDPOINT=" + wc.SQS_ENDPOINT
+	ret[6] = "AWS_REGION=" + wc.AWS_REGION
+	ret[7] = "AWS_BUCKET=" + wc.AWS_BUCKET
+	ret[8] = fmt.Sprintf("S3_MOCK=%v", wc.S3_MOCK)
+	ret[9] = "S3_BUCKET=" + wc.S3_BUCKET
+	ret[10] = "S3_ENDPOINT=" + wc.S3_ENDPOINT
+	ret[11] = fmt.Sprintf("S3_DISABLE_SSL=%v", wc.S3_DISABLE_SSL)
+	ret[12] = fmt.Sprintf("S3_FORCE_PATH_STYLE=%v", wc.S3_FORCE_PATH_STYLE)
+	ret[13] = "REDIS_HOST=" + wc.REDIS_HOST
+	ret[14] = "REDIS_PORT=" + wc.REDIS_PORT
+	ret[15] = "REDIS_PASSWORD=" + wc.REDIS_PASSWORD
+	ret[16] = "SQS_ENDPOINT=" + wc.SQS_ENDPOINT
 	return ret
 }
 func toBatchKeyValuePair(key string, value string) *batch.KeyValuePair {

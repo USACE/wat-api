@@ -111,12 +111,14 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 			go sj.ProcessDAG(config, i, j, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache, awsBatch, resources)
 		}
 	}
+	fmt.Println("complete")
 	return nil
 }
 
 func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, event int, sqs *sqs.SQS, realizationIndexedSeeds []model.IndexedSeed, eventIndexedSeedsByPlugin []model.IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch, resources []utils.ProvisionedResources) {
 	outputDestinationPath := fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination.Fragment, "realization_", realization, "event_", event)
 	for idx, n := range sj.Dag.Nodes {
+		fmt.Println(n.ImageAndTag, outputDestinationPath)
 		ec := model.EventConfiguration{
 			OutputDestination: model.ResourceInfo{
 				Scheme:    sj.Outputdestination.Scheme,
@@ -156,22 +158,24 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, eve
 		//key = payload.Alternative + "_" + payload.Name + "_R" + fmt.Sprint(payload.EventConfiguration().Realization.Index) + "_E" + fmt.Sprint(payload.EventConfiguration().Event.Index)
 		//cache.Set(key, "in progress", 0)
 		//send message to sqs
-		if n.Plugin.Name == "hydrograph_scaler" {
-			mess := model.PayloadMessage{
-				Plugin:      n.Plugin,
-				PayloadPath: path,
-			}
-			byt, err := yaml.Marshal(mess)
-			if err != nil {
-				panic(err)
-			}
-			err = sj.SendMessage(string(byt), sqs, "messages") //p.Name
-			if err != nil {
-				fmt.Println(err)
-				panic(err)
-			}
+		/*mess := model.PayloadMessage{
+			Plugin:      n.Plugin,
+			PayloadPath: path,
 		}
+		byt, err := yaml.Marshal(mess)
+		if err != nil {
+			panic(err)
+		}
+		err = sj.SendMessage(string(byt), sqs, "messages")
+		*/
 
 		//submit job to batch.
+		s, err := utils.StartContainer(n.Plugin, path, config.EnvironmentVariables())
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+		fmt.Print(s)
 	}
+	fmt.Println("event", event, "realization", realization, "complete!")
 }

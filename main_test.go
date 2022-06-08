@@ -19,12 +19,15 @@ func TestPostCompute(t *testing.T) {
 		t.Fail()
 	}
 	sj := handler.MockStochasticJob(wHandler.Config())
+	fmt.Println(sj)
 	byteblob, err := json.Marshal(sj)
 	if err != nil {
 		t.Fail()
 	}
+	fmt.Println(string(byteblob))
 	response, err := http.Post("http://host.docker.internal:8001/wat-api/compute", "application/json", bytes.NewBuffer(byteblob))
 	if err != nil {
+		fmt.Println(err)
 		t.Fail()
 	}
 	fmt.Println(response)
@@ -37,6 +40,8 @@ func mockLoader() utils.ServicesLoader {
 		AWS_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
 		AWS_DEFAULT_REGION:    "us-east-1",
 		AWS_S3_REGION:         "us-east-1",
+		AWS_REGION:            "us-east-1",
+		AWS_BUCKET:            "cloud-wat-dev",
 		S3_MOCK:               true,
 		S3_BUCKET:             "configs",
 		S3_ENDPOINT:           "http://host.docker.internal:9000",

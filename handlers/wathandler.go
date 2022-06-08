@@ -103,6 +103,7 @@ func (wh *WatHandler) Plugins(c echo.Context) error {
 	return c.JSON(http.StatusOK, plugins)
 }
 func (wh *WatHandler) ExecuteJob(c echo.Context) error {
+	fmt.Println("executing job")
 	sj := wat.StochasticJob{}
 	if err := c.Bind(&sj); err != nil {
 		return c.String(http.StatusBadRequest, err.Error())

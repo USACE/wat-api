@@ -22,7 +22,7 @@ services:
 
   minio:
     container_name: s3
-    image: minio/minio
+    image: minio/minio:RELEASE.2022-03-17T06-34-49Z.fips
     environment:
       - MINIO_ROOT_USER=AKIAIOSFODNN7EXAMPLE
       - MINIO_ROOT_PASSWORD=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
@@ -35,15 +35,16 @@ services:
   # and         https://gist.github.com/haxoza/22afe7cc4a9da7e8bdc09aad393a99cc
   minio_init:
     container_name: s3_init
-    image: minio/mc
+    image: minio/mc:RELEASE.2022-03-17T07-21-29Z
     depends_on:
       - minio
     entrypoint: >
       /bin/sh -c "
       /usr/bin/mc config host add minio http://minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY;
-      /usr/bin/mc mb   minio/configs;
-      /usr/bin/mc policy set public minio/configs;
-      /usr/bin/mc cp --recursive /configs/ minio/configs/ ;
+      /usr/bin/mc rb --force minio/cloud-wat-dev/;
+      /usr/bin/mc mb minio/cloud-wat-dev/;
+      /usr/bin/mc policy set public minio/cloud-wat-dev;
+      /usr/bin/mc cp --recursive /configs/ minio/cloud-wat-dev/;
       exit 0;
       "
     volumes:
@@ -62,24 +63,27 @@ services:
       - WAT_API_AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
       - WAT_API_AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
       - WAT_API_AWS_DEFAULT_REGION=us-east-1
+      - WAT_API_AWS_REGION=us-east-1
+      - WAT_API_AWS_BUCKET=cloud-wat-dev
       - WAT_API_AWS_S3_REGION=us-east-1
-      - WAT_API_AWS_S3_BUCKET=configs
+      - WAT_API_AWS_S3_BUCKET=cloud-wat-dev
       - WAT_API_S3_MOCK=True
-      - WAT_API_S3_BUCKET=configs
-      - WAT_API_S3_ENDPOINT=minio:9000
+      - WAT_API_S3_BUCKET=cloud-wat-dev
+      - WAT_API_S3_ENDPOINT=host.docker.internal:9000
       - WAT_API_S3_DISABLE_SSL=True
       - WAT_API_S3_FORCE_PATH_STYLE=True
-      - WAT_API_REDIS_HOST=cache
+      - WAT_API_REDIS_HOST=host.docker.internal
       - WAT_API_REDIS_PORT=6379
       - WAT_API_REDIS_PASSWORD=eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
-      - WAT_API_SQS_ENDPOINT=http://sqs:9324
+      - WAT_API_SQS_ENDPOINT=http://host.docker.internal:9324
     ports:
       - 8001:8001
     volumes:
       - ./:/workspaces
+      - /var/run/docker.sock:/var/run/docker.sock
   lambda:
     container_name: lambda
-    image: williamlehman/lambda-mock:v0.0.18
+    image: williamlehman/lambda-mock:v0.0.22
     depends_on:
       - sqs
       - cache
@@ -90,9 +94,9 @@ services:
       - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_S3_REGION=us-east-1
-      - AWS_S3_BUCKET=configs
+      - AWS_S3_BUCKET=cloud-wat-dev
       - S3_MOCK=True
-      - S3_BUCKET=configs
+      - S3_BUCKET=cloud-wat-dev
       - S3_ENDPOINT=host.docker.internal:9000
       - S3_DISABLE_SSL=True
       - S3_FORCE_PATH_STYLE=True
@@ -100,8 +104,8 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
       - SQS_ENDPOINT=http://host.docker.internal:9324
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 volumes:
   cache:
     driver: local

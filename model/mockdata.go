@@ -115,7 +115,7 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 			},
 		}
 		inputs[1] = LinkedDataDescription{
-			Name:   "/Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/River: White  Reach: Muncie  RS: 15696.24",
+			Name:   `/Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/River: White  Reach: Muncie  RS: 15696.24`,
 			Format: "object",
 			ResourceInfo: ResourceInfo{
 				Scheme:    "s3",

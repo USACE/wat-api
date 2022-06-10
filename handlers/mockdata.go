@@ -69,8 +69,8 @@ func MockDag() model.DirectedAcyclicGraph {
 		},
 		Plugin: model.Plugin{
 			Name:            "ras-unsteady",
-			ImageAndTag:     "lawlerseth/ras-unsteady:v0.1.0",
-			CommandLineArgs: []string{"./watrun", "-payload"},
+			ImageAndTag:     "lawlerseth/ras-unsteady:v0.0.2",
+			CommandLineArgs: []string{"./watrun", "-m", "host.docker.internal:9000", "-f"},
 		},
 	}
 	return model.DirectedAcyclicGraph{
@@ -83,7 +83,7 @@ func MockStochasticJob(config config.WatConfig) wat.StochasticJob {
 	sj := wat.StochasticJob{
 		Dag:                    dag, //yo
 		TimeWindow:             tw,
-		TotalRealizations:      2,
+		TotalRealizations:      1,
 		EventsPerRealization:   1,
 		InitialRealizationSeed: 1234,
 		InitialEventSeed:       1234,
@@ -91,6 +91,30 @@ func MockStochasticJob(config config.WatConfig) wat.StochasticJob {
 			Scheme:    "s3",
 			Authority: "cloud-wat-dev",
 			Fragment:  "/runs/",
+		},
+		Inputsource: model.ResourceInfo{
+			Scheme:    "s3",
+			Authority: "cloud-wat-dev",
+			Fragment:  "/data/",
+		},
+		DeleteOutputAfterRealization: false,
+	}
+	return sj
+}
+func MockStochastic2dJob(config config.WatConfig) wat.StochasticJob {
+	tw := model.TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
+	dag := MockDag()
+	sj := wat.StochasticJob{
+		Dag:                    dag, //yo
+		TimeWindow:             tw,
+		TotalRealizations:      1,
+		EventsPerRealization:   1,
+		InitialRealizationSeed: 1234,
+		InitialEventSeed:       1234,
+		Outputdestination: model.ResourceInfo{
+			Scheme:    "s3",
+			Authority: "cloud-wat-dev",
+			Fragment:  "/runs2d/",
 		},
 		Inputsource: model.ResourceInfo{
 			Scheme:    "s3",

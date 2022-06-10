@@ -10,7 +10,7 @@ import (
 	"github.com/usace/wat-api/config"
 	handler "github.com/usace/wat-api/handlers"
 	"github.com/usace/wat-api/utils"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func TestPostCompute(t *testing.T) {
@@ -18,7 +18,7 @@ func TestPostCompute(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	sj := handler.MockStochasticJob(wHandler.Config())
+	sj := handler.MockStochastic2dJob(wHandler.Config())
 	fmt.Println(sj)
 	byteblob, err := json.Marshal(sj)
 	if err != nil {

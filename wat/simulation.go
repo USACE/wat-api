@@ -13,7 +13,7 @@ import (
 	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/model"
 	"github.com/usace/wat-api/utils"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 //Job is defined by a manifest, provisions plugin resources, sends messages, and generates event payloads
@@ -141,7 +141,7 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, eve
 			fmt.Println("failure to push event configuration to filestore:", err)
 			panic(err)
 		}
-		payload := model.MockModelPayload(sj.Inputsource, ec.OutputDestination, outputDestinationPath, n.Plugin)
+		payload := model.Mock2DModelPayload(sj.Inputsource, ec.OutputDestination, outputDestinationPath, n.Plugin)
 		bytes, err := yaml.Marshal(payload)
 		if err != nil {
 			panic(err)
@@ -170,12 +170,15 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, eve
 		*/
 
 		//submit job to batch.
+		//if n.Plugin.Name == "hydrograph_scaler" {
 		s, err := utils.StartContainer(n.Plugin, path, config.EnvironmentVariables())
 		if err != nil {
 			fmt.Println(err)
 			panic(err)
 		}
 		fmt.Print(s)
+		//}
+
 	}
 	fmt.Println("event", event, "realization", realization, "complete!")
 }

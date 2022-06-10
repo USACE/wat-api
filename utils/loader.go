@@ -16,7 +16,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/model"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type ServicesLoader struct {

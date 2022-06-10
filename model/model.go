@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/USACE/filestore"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type PayloadMessage struct {

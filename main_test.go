@@ -10,7 +10,7 @@ import (
 	"github.com/usace/wat-api/config"
 	handler "github.com/usace/wat-api/handlers"
 	"github.com/usace/wat-api/utils"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func TestPostCompute(t *testing.T) {

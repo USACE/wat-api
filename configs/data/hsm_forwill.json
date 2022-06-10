@@ -1,0 +1,16 @@
+{
+    "locations":[{
+    "name": "WestBC",
+    "flows": [
+      1, 1
+    ],
+    "timestep": 3600000000000,
+    "distribution":{
+            "mean": 3.707,
+            "standarddeviation": 0.240,
+            "skew": -0.475,
+            "equivalent_years_of_record": 35
+        }
+  }]
+}
+  

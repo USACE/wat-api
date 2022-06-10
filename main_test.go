@@ -18,7 +18,7 @@ func TestPostCompute(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	sj := handler.MockStochasticJob(wHandler.Config())
+	sj := handler.MockStochastic2dJob(wHandler.Config())
 	fmt.Println(sj)
 	byteblob, err := json.Marshal(sj)
 	if err != nil {

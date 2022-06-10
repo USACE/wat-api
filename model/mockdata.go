@@ -234,6 +234,183 @@ func MockModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, 
 	}
 	return payload
 }
+func Mock2DModelPayload(inputSource ResourceInfo, outputDestination ResourceInfo, eventParts string, plugin Plugin) ModelPayload {
+	mconfig := ModelConfiguration{}
+	inputs := make([]LinkedDataDescription, 0)
+	switch plugin.Name {
+	case "hydrograph_scaler":
+		mconfig.Name = "hydrographs"
+		inputs = append(inputs, LinkedDataDescription{
+			Name:      "Project File",
+			Parameter: "Project Specification",
+			Format:    ".json",
+			ResourceInfo: ResourceInfo{
+				Scheme:    inputSource.Scheme,
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "hsm_forwill.json",
+			},
+		})
+		inputs = append(inputs, LinkedDataDescription{
+			Name:      "Event Configuration",
+			Parameter: "Event Configuration",
+			Format:    ".json",
+			ResourceInfo: ResourceInfo{
+				Scheme:    outputDestination.Scheme,
+				Authority: outputDestination.Authority,
+				Fragment:  outputDestination.Fragment + "/hydrograph_scaler_Event Configuration.json",
+			},
+		})
+		outputs := make([]LinkedDataDescription, 1)
+		outputs[0] = LinkedDataDescription{
+			Name:      "WestBC.csv",
+			Parameter: "flow",
+			Format:    "csv",
+			ResourceInfo: ResourceInfo{
+				Scheme:    outputDestination.Scheme,
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/WestBC.csv",
+			},
+		}
+		payload := ModelPayload{
+			ModelConfiguration: mconfig,
+			ModelLinks: ModelLinks{
+				LinkedInputs:     inputs,
+				NecessaryOutputs: outputs,
+			},
+		}
+		return payload
+	case "ras-mutator":
+		mconfig.Name = "forwill"
+		inputs = make([]LinkedDataDescription, 2)
+		inputs[0] = LinkedDataDescription{
+			Name:   "self",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "models/forwill/forwill.p01.tmp.hdf", //this does not change
+			},
+		}
+		inputs[1] = LinkedDataDescription{
+			Name:   `/Event Conditions/Unsteady/Boundary Conditions/Flow Hydrographs/2D: Perimeter 1 BCLine: WestBC`,
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/WestBC.csv",
+			},
+		}
+		outputs := make([]LinkedDataDescription, 1)
+		outputs[0] = LinkedDataDescription{
+			Name:   "self",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/forwill.p01.tmp.hdf",
+			},
+		}
+		payload := ModelPayload{
+			ModelConfiguration: mconfig,
+			ModelLinks: ModelLinks{
+				LinkedInputs:     inputs,
+				NecessaryOutputs: outputs,
+			},
+		}
+		return payload
+	case "ras-unsteady":
+		mconfig.Name = "forwill"
+		inputs = make([]LinkedDataDescription, 5)
+		inputs[0] = LinkedDataDescription{
+			Name:   "forwill.p01.tmp.hdf",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,         //this actually needs to change to output source authority.
+				Fragment:  eventParts + "/forwill.p01.tmp.hdf", //provided by the mutator - changes each event
+			},
+		}
+		inputs[1] = LinkedDataDescription{
+			Name:   "forwill.b01",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "models/forwill/forwill.b01",
+			},
+		}
+		inputs[2] = LinkedDataDescription{
+			Name:   "forwill.prj",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "models/forwill/forwill.prj",
+			},
+		}
+		inputs[3] = LinkedDataDescription{
+			Name:   "forwill.x01",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "models/forwill/forwill.x01",
+			},
+		}
+		inputs[4] = LinkedDataDescription{
+			Name:   "forwill.c01",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: inputSource.Authority,
+				Fragment:  inputSource.Fragment + "models/forwill/forwill.c01",
+			},
+		}
+		outputs := make([]LinkedDataDescription, 3)
+		outputs[0] = LinkedDataDescription{
+			Name:   "forwill.p01.hdf",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/forwill.p01.hdf",
+			},
+		}
+		outputs[1] = LinkedDataDescription{
+			Name:   "forwill.log",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/forwill.log",
+			},
+		}
+		outputs[2] = LinkedDataDescription{
+			Name:   "forwill.dss",
+			Format: "object",
+			ResourceInfo: ResourceInfo{
+				Scheme:    "s3",
+				Authority: outputDestination.Authority,
+				Fragment:  eventParts + "/forwill.dss",
+			},
+		}
+		payload := ModelPayload{
+			ModelConfiguration: mconfig,
+			ModelLinks: ModelLinks{
+				LinkedInputs:     inputs,
+				NecessaryOutputs: outputs,
+			},
+		}
+		return payload
+	}
+	payload := ModelPayload{
+		ModelConfiguration: mconfig,
+		ModelLinks: ModelLinks{
+			LinkedInputs: inputs,
+		},
+	}
+	return payload
+}
 func MockEventConfiguration() EventConfiguration {
 	tw := TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
 	event := IndexedSeed{Index: 1, Seed: 5678}

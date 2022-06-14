@@ -11,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/batch"
-	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/go-redis/redis"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/model"
@@ -46,20 +44,6 @@ func (sl ServicesLoader) EnvironmentVariables() []string {
 func (sl ServicesLoader) Config() config.WatConfig {
 	return sl.config
 }
-func (sl ServicesLoader) InitQueue() (*sqs.SQS, error) {
-	creds := credentials.NewStaticCredentials(
-		sl.config.AWS_ACCESS_KEY_ID,
-		sl.config.AWS_SECRET_ACCESS_KEY,
-		"",
-	)
-	awscfg := aws.NewConfig().WithRegion(sl.config.AWS_DEFAULT_REGION).WithCredentials(creds)
-	sess, err := session.NewSession(awscfg)
-	if err != nil {
-		return nil, err
-	}
-	sqs := sqs.New(sess, aws.NewConfig().WithEndpoint(sl.config.SQS_ENDPOINT))
-	return sqs, nil
-}
 func (sl ServicesLoader) InitStore() (filestore.FileStore, error) {
 	//initalize S3 Store
 	mock := sl.config.S3_MOCK
@@ -85,15 +69,7 @@ func (sl ServicesLoader) InitStore() (filestore.FileStore, error) {
 
 	return fs, nil
 }
-func (sl ServicesLoader) InitRedis() (*redis.Client, error) {
 
-	client := redis.NewClient(&redis.Options{
-		Addr:     sl.config.REDIS_HOST + ":" + sl.config.REDIS_PORT,
-		Password: sl.config.REDIS_PASSWORD,
-		DB:       0,
-	})
-	return client, nil
-}
 func (sl ServicesLoader) InitBatch() (*batch.Batch, error) {
 	/*sess, err := session.NewSession(&aws.Config{
 		Credentials: credentials.NewStaticCredentialsFromCreds(credentials.Value{

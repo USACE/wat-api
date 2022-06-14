@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/batch"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/go-redis/redis"
 	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/model"
 	"github.com/usace/wat-api/utils"
@@ -23,7 +22,7 @@ type Job interface {
 	//sendmessage
 	SendMessage(message string, sqs *sqs.SQS) error
 	//does this thing need to "run" or "compute"
-	GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client) error
+	GeneratePayloads(config config.WatConfig, fs filestore.FileStore, aws_batch *batch.Batch) error
 }
 
 //DeterministicJob implements the Job interface for a Deterministic Compute
@@ -76,7 +75,7 @@ func (sj StochasticJob) SendMessage(message string, queue *sqs.SQS, queueName st
 	fmt.Println(output.String())
 	return nil
 }
-func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, cache *redis.Client, config config.WatConfig, awsBatch *batch.Batch) error {
+func (sj StochasticJob) GeneratePayloads(config config.WatConfig, fs filestore.FileStore, awsBatch *batch.Batch) error {
 	//provision resources
 	resources, err := sj.ProvisionResources(awsBatch)
 	//create random seed generators.
@@ -108,14 +107,14 @@ func (sj StochasticJob) GeneratePayloads(sqs *sqs.SQS, fs filestore.FileStore, c
 				pluginEventSeed := realizationRandomGeneratorByPlugin[idx].Int63()
 				pluginEventIndexedSeeds[idx] = model.IndexedSeed{Index: j, Seed: pluginEventSeed}
 			}
-			go sj.ProcessDAG(config, i, j, sqs, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, cache, awsBatch, resources)
+			go sj.ProcessDAG(config, i, j, realizationIndexedSeeds, pluginEventIndexedSeeds, fs, awsBatch, resources)
 		}
 	}
 	fmt.Println("complete")
 	return nil
 }
 
-func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, event int, sqs *sqs.SQS, realizationIndexedSeeds []model.IndexedSeed, eventIndexedSeedsByPlugin []model.IndexedSeed, fs filestore.FileStore, cache *redis.Client, awsBatch *batch.Batch, resources []utils.ProvisionedResources) {
+func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, event int, realizationIndexedSeeds []model.IndexedSeed, eventIndexedSeedsByPlugin []model.IndexedSeed, fs filestore.FileStore, awsBatch *batch.Batch, resources []utils.ProvisionedResources) {
 	outputDestinationPath := fmt.Sprintf("%v%v%v/%v%v", sj.Outputdestination.Fragment, "realization_", realization, "event_", event)
 	for idx, n := range sj.Dag.Nodes {
 		fmt.Println(n.ImageAndTag, outputDestinationPath)
@@ -154,21 +153,6 @@ func (sj StochasticJob) ProcessDAG(config config.WatConfig, realization int, eve
 			fmt.Println("failure to push payload to filestore:", err)
 			panic(err)
 		}
-		//set status in redis
-		//key = payload.Alternative + "_" + payload.Name + "_R" + fmt.Sprint(payload.EventConfiguration().Realization.Index) + "_E" + fmt.Sprint(payload.EventConfiguration().Event.Index)
-		//cache.Set(key, "in progress", 0)
-		//send message to sqs
-		/*mess := model.PayloadMessage{
-			Plugin:      n.Plugin,
-			PayloadPath: path,
-		}
-		byt, err := yaml.Marshal(mess)
-		if err != nil {
-			panic(err)
-		}
-		err = sj.SendMessage(string(byt), sqs, "messages")
-		*/
-
 		//submit job to batch.
 		//if n.Plugin.Name == "hydrograph_scaler" {
 		s, err := utils.StartContainer(n.Plugin, path, config.EnvironmentVariables())

@@ -6,8 +6,6 @@ import (
 
 	"github.com/USACE/filestore"
 	"github.com/aws/aws-sdk-go/service/batch"
-	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/go-redis/redis"
 	"github.com/labstack/echo/v4"
 	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/model"
@@ -17,8 +15,6 @@ import (
 
 type WatHandler struct {
 	store         filestore.FileStore
-	queue         *sqs.SQS
-	cache         *redis.Client
 	captainCrunch *batch.Batch
 	AppPort       string
 	config        config.WatConfig
@@ -35,16 +31,6 @@ func CreateWatHandlerFromConfig(config config.WatConfig) (*WatHandler, error) {
 		return &wh, err
 	}
 	wh.store = store
-	sqs, err := loader.InitQueue()
-	if err != nil {
-		return &wh, err
-	}
-	wh.queue = sqs
-	cache, err := loader.InitRedis()
-	if err != nil {
-		return &wh, err
-	}
-	wh.cache = cache
 	awsBatch, err := loader.InitBatch()
 	if err != nil {
 		return &wh, err
@@ -65,16 +51,6 @@ func CreateWatHandler() (*WatHandler, error) {
 		return &wh, err
 	}
 	wh.store = store
-	sqs, err := loader.InitQueue()
-	if err != nil {
-		return &wh, err
-	}
-	wh.queue = sqs
-	cache, err := loader.InitRedis()
-	if err != nil {
-		return &wh, err
-	}
-	wh.cache = cache
 	awsBatch, err := loader.InitBatch()
 	if err != nil {
 		return &wh, err
@@ -108,7 +84,7 @@ func (wh *WatHandler) ExecuteJob(c echo.Context) error {
 	if err := c.Bind(&sj); err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
-	err := sj.GeneratePayloads(wh.queue, wh.store, wh.cache, wh.config, wh.captainCrunch)
+	err := sj.GeneratePayloads(wh.config, wh.store, wh.captainCrunch)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}

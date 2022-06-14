@@ -24,11 +24,11 @@ services:
       /usr/bin/mc rb --force minio/cloud-wat-dev/;
       /usr/bin/mc mb minio/cloud-wat-dev/;
       /usr/bin/mc policy set public minio/cloud-wat-dev;
-      /usr/bin/mc cp --recursive /configs/ minio/cloud-wat-dev/;
+      /usr/bin/mc cp --recursive /example_data/ minio/cloud-wat-dev/;
       exit 0;
       "
     volumes:
-      - ./configs:/configs
+      - ./example_data:/example_data
   wat-api:
     container_name: wat-api
     depends_on: 

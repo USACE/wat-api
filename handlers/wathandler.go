@@ -10,7 +10,6 @@ import (
 	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/model"
 	"github.com/usace/wat-api/utils"
-	"github.com/usace/wat-api/wat"
 )
 
 type WatHandler struct {
@@ -80,7 +79,7 @@ func (wh *WatHandler) Plugins(c echo.Context) error {
 }
 func (wh *WatHandler) ExecuteJob(c echo.Context) error {
 	fmt.Println("executing job")
-	sj := wat.StochasticJob{}
+	sj := model.StochasticJob{}
 	if err := c.Bind(&sj); err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}

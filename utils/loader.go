@@ -13,8 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/batch"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/usace/wat-api/config"
-	"github.com/usace/wat-api/model"
-	"gopkg.in/yaml.v3"
 )
 
 type ServicesLoader struct {
@@ -112,28 +110,6 @@ func LoadJsonPluginModelFromS3(filepath string, fs filestore.FileStore, pluginMo
 
 	return nil
 
-}
-
-// LoadModelPayload
-func LoadModelPayloadFromS3(payloadFile string, fs filestore.FileStore) (model.ModelPayload, error) {
-	var p model.ModelPayload
-	fmt.Println("reading payload:", payloadFile)
-	data, err := fs.GetObject(payloadFile)
-	if err != nil {
-		return p, err
-	}
-
-	body, err := ioutil.ReadAll(data)
-	if err != nil {
-		return p, err
-	}
-	//fmt.Println(string(body))
-	err = yaml.Unmarshal(body, &p)
-	if err != nil {
-		return p, err
-	}
-	//fmt.Println(p)
-	return p, nil
 }
 
 // UpLoadToS3

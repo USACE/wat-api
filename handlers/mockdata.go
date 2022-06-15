@@ -5,7 +5,6 @@ import (
 
 	"github.com/usace/wat-api/config"
 	"github.com/usace/wat-api/model"
-	"github.com/usace/wat-api/wat"
 )
 
 func MockDag() model.DirectedAcyclicGraph {
@@ -77,10 +76,10 @@ func MockDag() model.DirectedAcyclicGraph {
 		Nodes: manifests,
 	}
 }
-func MockStochasticJob(config config.WatConfig) wat.StochasticJob {
+func MockStochasticJob(config config.WatConfig) model.StochasticJob {
 	tw := model.TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
 	dag := MockDag()
-	sj := wat.StochasticJob{
+	sj := model.StochasticJob{
 		Dag:                    dag, //yo
 		TimeWindow:             tw,
 		TotalRealizations:      1,
@@ -101,10 +100,10 @@ func MockStochasticJob(config config.WatConfig) wat.StochasticJob {
 	}
 	return sj
 }
-func MockStochastic2dJob(config config.WatConfig) wat.StochasticJob {
+func MockStochastic2dJob(config config.WatConfig) model.StochasticJob {
 	tw := model.TimeWindow{StartTime: time.Date(2018, 1, 1, 1, 1, 1, 1, time.Local), EndTime: time.Date(2020, time.December, 31, 1, 1, 1, 1, time.Local)}
 	dag := MockDag()
-	sj := wat.StochasticJob{
+	sj := model.StochasticJob{
 		Dag:                    dag, //yo
 		TimeWindow:             tw,
 		TotalRealizations:      1,

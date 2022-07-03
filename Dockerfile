@@ -1,24 +1,11 @@
-FROM osgeo/gdal:alpine-normal-3.2.1 as dev
-
-COPY --from=golang:1.18-alpine3.14 /usr/local/go/ /usr/local/go/
+FROM golang:1.18.2-alpine3.15 AS dev
 
 RUN apk add --no-cache \
-    pkgconfig \
+    build-base \
     gcc \
-    libc-dev \
     git
-
-ENV GOROOT=/usr/local/go
-ENV GOPATH=/go
-ENV GO111MODULE="on"
-ENV PATH=$PATH:$GOROOT/bin:$GOPATH/bin
-RUN apk add --no-cache git
-ENV CGO_ENABLED 0 
-
-# Hot-Reloader for development
-RUN go install github.com/githubnemo/CompileDaemon@latest
-
-# COPY ./configSchemas.json /shared/
+    
+RUN go install github.com/githubnemo/CompileDaemon@v1.4.0
 
 COPY ./ /app
 WORKDIR /app
@@ -28,15 +15,6 @@ RUN go mod tidy
 RUN go build main.go
 ENTRYPOINT /go/bin/CompileDaemon --build="go build main.go"
 
-
-# Testing container
-#FROM golang:1.18-alpine3.14 AS test
-# required cgo setting to run tests in container
-#ENV CGO_ENABLED 0 
-
-#WORKDIR /app
-#COPY --from=dev /app .
-#CMD ["sleep", "1d"]
 
 
 # Production container
